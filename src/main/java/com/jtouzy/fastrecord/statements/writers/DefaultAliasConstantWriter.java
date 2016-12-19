@@ -1,12 +1,14 @@
 package com.jtouzy.fastrecord.statements.writers;
 
 import com.google.common.base.Strings;
+import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.AliasConstantContext;
 import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 import java.sql.Types;
 
+@Writes(AliasConstantContext.class)
 public class DefaultAliasConstantWriter extends AbstractWriter<AliasConstantContext> {
     public DefaultAliasConstantWriter(AliasConstantContext context) {
         super(context);
