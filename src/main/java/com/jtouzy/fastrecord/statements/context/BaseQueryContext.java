@@ -14,7 +14,7 @@ public class BaseQueryContext implements QueryContext {
     }
 
     @Override
-    public String getColumnAlias() {
+    public String getAlias() {
         return alias;
     }
 

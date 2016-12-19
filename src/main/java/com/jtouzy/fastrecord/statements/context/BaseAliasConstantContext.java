@@ -9,7 +9,7 @@ public class BaseAliasConstantContext extends BaseConstantContext implements Ali
     }
 
     @Override
-    public String getColumnAlias() {
+    public String getAlias() {
         return alias;
     }
 }
