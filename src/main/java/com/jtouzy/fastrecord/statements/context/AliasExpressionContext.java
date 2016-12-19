@@ -1,4 +1,4 @@
 package com.jtouzy.fastrecord.statements.context;
 
-public interface AliasExpressionContext extends AliasContext, ExpressionContext {
+public interface AliasExpressionContext extends AliasContext {
 }

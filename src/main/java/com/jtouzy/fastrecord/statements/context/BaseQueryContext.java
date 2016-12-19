@@ -4,22 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BaseQueryContext implements QueryContext {
-    private String alias;
     private final List<AliasExpressionContext> columnContextList;
     private final List<QueryFromContext> fromContextList;
 
     public BaseQueryContext() {
         this.columnContextList = new ArrayList<>();
         this.fromContextList = new ArrayList<>();
-    }
-
-    @Override
-    public String getAlias() {
-        return alias;
-    }
-
-    public void setAlias(String alias) {
-        this.alias = alias;
     }
 
     @Override
