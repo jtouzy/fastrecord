@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractWriter<T> implements Writer<T> {
     private static final Logger logger = LoggerFactory.getLogger(AbstractWriter.class);
-    private final T context;
     private final WriterCache writerCache;
     private final DbReadyStatementMetadata statementMetadata;
+    private T context;
 
     public AbstractWriter(WriterCache writerCache, T context) {
         this.writerCache = writerCache;
@@ -21,6 +21,11 @@ public abstract class AbstractWriter<T> implements Writer<T> {
     @Override
     public T getContext() {
         return context;
+    }
+
+    @Override
+    public void setContext(T context) {
+        this.context = context;
     }
 
     public WriterCache getWriterCache() {

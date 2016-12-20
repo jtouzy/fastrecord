@@ -14,14 +14,16 @@ public class WriterCache {
     public WriterCache() {
     }
 
-    public Writer getWriter(Object context) {
-        Writer writer = writerCache.get(context.getClass());
+    @SuppressWarnings("unchecked")
+    public <T> Writer<T> getWriter(T context) {
+        Writer<T> writer = (Writer<T>)writerCache.get(context.getClass());
         if (writer == null) {
             logger.debug("No writer in cache.");
             writer = FastRecord.fr().getWriterFactory().getWriter(this, context);
             writerCache.put(context.getClass(), writer);
         } else {
-            logger.debug("Get writer instance from cache [{}]", writer);
+            logger.debug("Get writer instance from cache [{}], updating context", writer);
+            writer.setContext(context);
         }
         return writer;
     }
