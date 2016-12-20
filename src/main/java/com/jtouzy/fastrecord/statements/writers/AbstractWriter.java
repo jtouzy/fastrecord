@@ -1,15 +1,19 @@
 package com.jtouzy.fastrecord.statements.writers;
 
-import com.jtouzy.fastrecord.FastRecord;
 import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractWriter<T> implements Writer<T> {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractWriter.class);
     private final T context;
+    private final WriterCache writerCache;
     private final DbReadyStatementMetadata statementMetadata;
 
-    public AbstractWriter(T context) {
+    public AbstractWriter(WriterCache writerCache, T context) {
+        this.writerCache = writerCache;
         this.context = context;
         this.statementMetadata = new BaseDbReadyStatementMetadata("");
     }
@@ -17,6 +21,10 @@ public abstract class AbstractWriter<T> implements Writer<T> {
     @Override
     public T getContext() {
         return context;
+    }
+
+    public WriterCache getWriterCache() {
+        return writerCache;
     }
 
     protected StringBuilder getSqlString() {
@@ -32,9 +40,21 @@ public abstract class AbstractWriter<T> implements Writer<T> {
     }
 
     protected void mergeWriter(Object contextObject) {
-        // TODO optimizations to not search class and store class/constructor for each context called
-        Writer writer = FastRecord.fr().getWriterFactory().getWriter(contextObject);
+        logger.debug("Start processing [merge] with [{}]...", contextObject);
+        Writer writer = getWriterCache().getWriter(contextObject);
         DbReadyStatementMetadata statementMetadata = writer.write();
         this.statementMetadata.merge(statementMetadata);
+        writer.clear();
+    }
+
+    @Override
+    public DbReadyStatementMetadata write() {
+        logger.debug("Writing [{}] with [{}]", context, this);
+        return null;
+    }
+
+    @Override
+    public void clear() {
+        this.statementMetadata.clear();
     }
 }

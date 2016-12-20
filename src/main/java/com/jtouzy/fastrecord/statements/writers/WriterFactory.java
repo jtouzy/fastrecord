@@ -59,8 +59,8 @@ public class WriterFactory extends ConfigurationBased {
     }
 
     @SuppressWarnings("unchecked")
-    public <W extends Writer<T>,T> W getWriter(T context) {
-        logger.debug("Getting new writer for context {}...", context);
+    public <W extends Writer<T>,T> W getWriter(WriterCache writerCache, T context) {
+        logger.debug("Getting new writer from Factory for context {}...", context);
         Constructor<W> constructor = (Constructor<W>)writersCache.get(context.getClass());
         if (constructor != null) {
             logger.debug("Get constructor from cache");
@@ -69,7 +69,7 @@ public class WriterFactory extends ConfigurationBased {
             constructor = findConstructor(writerClass, context);
         }
         try {
-            W writer = constructor.newInstance(context);
+            W writer = constructor.newInstance(writerCache, context);
             writersCache.putIfAbsent(context.getClass(), constructor);
             logger.debug("Writer found {}", writer);
             return writer;
@@ -95,7 +95,7 @@ public class WriterFactory extends ConfigurationBased {
         Class currentContextClass = context.getClass();
         while (true) {
             if (currentContextClass == null || currentContextClass == Object.class) {
-                throw new WriterDefinitionException("No writer class found for " + context.getClass());
+                throw new WriterDefinitionException("No writer class found for " + context);
             }
             logger.debug("Search writer for {}", currentContextClass);
             if (contextClasses.contains(currentContextClass)) {
@@ -117,16 +117,16 @@ public class WriterFactory extends ConfigurationBased {
         while (true) {
             if (currentContextClass == null || currentContextClass == Object.class) {
                 throw new WriterDefinitionException(
-                        "No constructor with context class found in " + writerClass.getClass());
+                        "No constructor with context class found in " + writerClass);
             }
             logger.debug("Search constructor with parameter type {}", currentContextClass);
             try {
-                return writerClass.getConstructor(currentContextClass);
+                return writerClass.getConstructor(WriterCache.class, currentContextClass);
             } catch (NoSuchMethodException ex) {
                 for (Class interfaceClass : currentContextClass.getInterfaces()) {
                     logger.debug("Search constructor with parameter type {}", interfaceClass);
                     try {
-                        return writerClass.getConstructor(interfaceClass);
+                        return writerClass.getConstructor(WriterCache.class, interfaceClass);
                     } catch (NoSuchMethodException exi) {}
                 }
                 currentContextClass = currentContextClass.getSuperclass();

@@ -7,12 +7,13 @@ import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import java.util.Iterator;
 
 public class BaseQueryWriter<T extends QueryContext> extends AbstractWriter<T> {
-    public BaseQueryWriter(T context) {
-        super(context);
+    public BaseQueryWriter(WriterCache writerCache, T context) {
+        super(writerCache, context);
     }
 
     @Override
     public DbReadyStatementMetadata write() {
+        super.write();
         appendQueryColumns();
         return buildMetadata();
     }

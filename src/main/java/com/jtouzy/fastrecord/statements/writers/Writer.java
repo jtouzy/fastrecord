@@ -5,4 +5,5 @@ import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 public interface Writer<T> {
     T getContext();
     DbReadyStatementMetadata write();
+    void clear();
 }

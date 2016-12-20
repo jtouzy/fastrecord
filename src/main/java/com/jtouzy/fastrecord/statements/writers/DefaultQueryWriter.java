@@ -5,7 +5,7 @@ import com.jtouzy.fastrecord.statements.context.QueryContext;
 
 @Writes(QueryContext.class)
 public class DefaultQueryWriter extends BaseQueryWriter<QueryContext> {
-    public DefaultQueryWriter(QueryContext context) {
-        super(context);
+    public DefaultQueryWriter(WriterCache writerCache, QueryContext context) {
+        super(writerCache, context);
     }
 }

@@ -7,4 +7,5 @@ public interface DbReadyStatementMetadata {
     void merge(DbReadyStatementMetadata metadata);
     void addParameter(DbReadyStatementParameter parameter);
     List<DbReadyStatementParameter> getParameters();
+    void clear();
 }

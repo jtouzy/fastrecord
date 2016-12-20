@@ -7,13 +7,12 @@ import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 @Writes(AliasQueryContext.class)
 public class DefaultAliasQueryWriter extends BaseQueryWriter<AliasQueryContext> {
-    public DefaultAliasQueryWriter(AliasQueryContext context) {
-        super(context);
+    public DefaultAliasQueryWriter(WriterCache writerCache, AliasQueryContext context) {
+        super(writerCache, context);
     }
 
     @Override
     public DbReadyStatementMetadata write() {
-        // TODO: Objet DbReady recréé : optimisations?
         super.write();
         getSqlString().insert(0, '(');
         getSqlString().append(')');

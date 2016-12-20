@@ -37,4 +37,10 @@ public class BaseDbReadyStatementMetadata implements DbReadyStatementMetadata {
     public List<DbReadyStatementParameter> getParameters() {
         return parameters;
     }
+
+    @Override
+    public void clear() {
+        this.sqlString.delete(0, this.sqlString.length());
+        this.parameters.clear();
+    }
 }

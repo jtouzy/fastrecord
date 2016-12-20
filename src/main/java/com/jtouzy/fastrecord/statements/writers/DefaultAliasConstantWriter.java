@@ -8,12 +8,13 @@ import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 @Writes(AliasConstantContext.class)
 public class DefaultAliasConstantWriter extends AbstractWriter<AliasConstantContext> {
-    public DefaultAliasConstantWriter(AliasConstantContext context) {
-        super(context);
+    public DefaultAliasConstantWriter(WriterCache writerCache, AliasConstantContext context) {
+        super(writerCache, context);
     }
 
     @Override
     public DbReadyStatementMetadata write() {
+        super.write();
         getSqlString().append("?");
         addParameter(new BaseDbReadyStatementParameter(getContext().getValue(), getContext().getType()));
         String alias = getContext().getAlias();
