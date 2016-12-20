@@ -6,10 +6,14 @@ import com.jtouzy.fastrecord.statements.context.QueryContext;
 import com.jtouzy.fastrecord.statements.context.QueryFromContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.utils.Chain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 
 public class BaseQueryWriter<T extends QueryContext> extends AbstractWriter<T> {
+    private static final Logger logger = LoggerFactory.getLogger(BaseQueryWriter.class);
+
     public BaseQueryWriter(WriterCache writerCache, T context) {
         super(writerCache, context);
     }
@@ -49,6 +53,10 @@ public class BaseQueryWriter<T extends QueryContext> extends AbstractWriter<T> {
     }
 
     private void appendWhere() {
-        mergeWriter(getContext().getConditionsContext());
+        if (getContext().getConditionsContext().getConditions().size() > 0) {
+            mergeWriter(getContext().getConditionsContext());
+        } else {
+            logger.debug("No conditions to append. No need to call ConditionsContextWriter.");
+        }
     }
 }
