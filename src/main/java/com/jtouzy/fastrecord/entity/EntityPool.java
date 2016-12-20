@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.sql.Types;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class EntityPool extends ConfigurationBased {
@@ -33,6 +34,10 @@ public class EntityPool extends ConfigurationBased {
         super(configuration);
         this.entityDescriptorsByClass = new LinkedHashMap<>();
         this.readEntities();
+    }
+
+    public Optional<EntityDescriptor> getEntityDescriptor(Class entityClass) {
+        return Optional.ofNullable(entityDescriptorsByClass.get(entityClass));
     }
 
     public Set<EntityDescriptor> getEntityDescriptors() {

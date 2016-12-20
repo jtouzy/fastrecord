@@ -1,17 +1,20 @@
 package com.jtouzy.fastrecord.entity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class EntityDescriptor {
     private final Class clazz;
     private final String tableName;
-    private final List<ColumnDescriptor> columnDescriptors;
+    private final Map<String,ColumnDescriptor> columnDescriptorsByProperty;
 
     public EntityDescriptor(Class clazz, String tableName) {
         this.clazz = clazz;
         this.tableName = tableName;
-        this.columnDescriptors = new ArrayList<>();
+        this.columnDescriptorsByProperty = new HashMap<>();
     }
 
     public Class getClazz() {
@@ -23,11 +26,15 @@ public class EntityDescriptor {
     }
 
     public void addColumnDescriptor(ColumnDescriptor columnDescriptor) {
-        this.columnDescriptors.add(columnDescriptor);
+        this.columnDescriptorsByProperty.put(columnDescriptor.getPropertyName(), columnDescriptor);
+    }
+
+    public Optional<ColumnDescriptor> getColumnDescriptor(String propertyName) {
+        return Optional.ofNullable(columnDescriptorsByProperty.get(propertyName));
     }
 
     public List<ColumnDescriptor> getColumnDescriptors() {
-        return columnDescriptors;
+        return new ArrayList<>(columnDescriptorsByProperty.values());
     }
 
     @Override
@@ -36,7 +43,7 @@ public class EntityDescriptor {
         sb.append('[');
         sb.append("clazz=").append(clazz);
         sb.append(", tableName='").append(tableName).append('\'');
-        sb.append(", columnCount='").append(columnDescriptors.size()).append('\'');
+        sb.append(", columnCount='").append(columnDescriptorsByProperty.size()).append('\'');
         sb.append(']');
         return sb.toString();
     }
