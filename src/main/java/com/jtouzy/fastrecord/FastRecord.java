@@ -33,6 +33,8 @@ public class FastRecord {
     }
 
     public static FastRecord fr() {
+        if (instance == null)
+            throw new IllegalStateException("FastRecord is not initialized");
         return instance;
     }
 
