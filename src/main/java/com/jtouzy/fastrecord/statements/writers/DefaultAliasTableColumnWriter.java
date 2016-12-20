@@ -6,7 +6,7 @@ import com.jtouzy.fastrecord.statements.context.AliasTableColumnContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 @Writes(AliasTableColumnContext.class)
-public class DefaultAliasTableColumnWriter extends AbstractWriter<AliasTableColumnContext> {
+public class DefaultAliasTableColumnWriter extends BaseTableColumnWriter<AliasTableColumnContext> {
     public DefaultAliasTableColumnWriter(WriterCache writerCache, AliasTableColumnContext context) {
         super(writerCache, context);
     }
@@ -14,19 +14,10 @@ public class DefaultAliasTableColumnWriter extends AbstractWriter<AliasTableColu
     @Override
     public DbReadyStatementMetadata write() {
         super.write();
-        StringBuilder sqlString = getSqlString();
-        String alias = getContext().getTableContext().getTableAlias();
+        String alias = getContext().getAlias();
         if (!Strings.isNullOrEmpty(alias)) {
-            sqlString.append(alias);
-        } else {
-            sqlString.append(getContext().getTableContext().getTable());
-        }
-        sqlString.append(".")
-                 .append(getContext().getColumn());
-        alias = getContext().getAlias();
-        if (!Strings.isNullOrEmpty(alias)) {
-            sqlString.append(" as ")
-                     .append(alias);
+            getSqlString().append(" as ")
+                          .append(alias);
         }
         return buildMetadata();
     }
