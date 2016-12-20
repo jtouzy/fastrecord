@@ -19,6 +19,7 @@ public class BaseQueryWriter<T extends QueryContext> extends AbstractWriter<T> {
         super.write();
         appendColumns();
         appendFrom();
+        appendWhere();
         return buildMetadata();
     }
 
@@ -45,5 +46,9 @@ public class BaseQueryWriter<T extends QueryContext> extends AbstractWriter<T> {
                 getSqlString().append(", ");
             }
         }
+    }
+
+    private void appendWhere() {
+        mergeWriter(getContext().getConditionsContext());
     }
 }

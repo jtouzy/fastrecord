@@ -10,4 +10,5 @@ public interface QueryContext extends ExpressionContext, QueryFromContext {
     void addFromContext(JoinOperator operator, QueryFromContext fromContext);
     List<AliasExpressionContext> getColumnContextList();
     Chain<QueryFromContext,JoinOperator> getFromContextChain();
+    ConditionsContext getConditionsContext();
 }
