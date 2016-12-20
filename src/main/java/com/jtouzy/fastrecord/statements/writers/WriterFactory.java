@@ -4,6 +4,8 @@ import com.jtouzy.fastrecord.statements.context.AliasConstantContext;
 import com.jtouzy.fastrecord.statements.context.AliasQueryContext;
 import com.jtouzy.fastrecord.statements.context.AliasTableColumnContext;
 import com.jtouzy.fastrecord.statements.context.QueryContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class WriterFactory {
+    private static final Logger logger = LoggerFactory.getLogger(WriterFactory.class);
     private static final Map<Class,Class<? extends Writer>> defaultWriters = new LinkedHashMap<>();
     private static final Map<Class,Class<? extends Writer>> writers = new LinkedHashMap<>();
 
@@ -27,13 +30,12 @@ public class WriterFactory {
 
     @SuppressWarnings("unchecked")
     public static <W extends Writer<T>,T> W getWriter(T context) {
-        System.out.println("Factory : Getting new writer for context " + context + "...");
+        logger.debug("Getting new writer for context {}...", context);
         Class<W> writerClass = (Class<W>)findWriterClass(context);
         Constructor<W> constructor = findConstructor(writerClass, context);
         try {
             W writer = constructor.newInstance(context);
-            System.out.println("Writer found : " + writer);
-            System.out.println("");
+            logger.debug("Writer found {}", writer);
             return writer;
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException ex) {
             throw new WriterDefinitionException("Error while calling " + writerClass.getClass() + " constructor", ex);
@@ -42,10 +44,10 @@ public class WriterFactory {
 
     private static <T> Class<? extends Writer<T>> findWriterClass(T context) {
         try {
-            System.out.println("Search in writers...");
+            logger.debug("Search in writers...");
             return findInCollection(writers, context);
         } catch (WriterDefinitionException ex) {
-            System.out.println("Search in default writers...");
+            logger.debug("Search in default writers...");
             return findInCollection(defaultWriters, context);
         }
     }
@@ -59,12 +61,12 @@ public class WriterFactory {
             if (currentContextClass == null || currentContextClass == Object.class) {
                 throw new WriterDefinitionException("No writer class found for " + context.getClass());
             }
-            System.out.println("Search for " + currentContextClass);
+            logger.debug("Search writer for {}", currentContextClass);
             if (contextClasses.contains(currentContextClass)) {
                 return (Class<? extends Writer<T>>)collection.get(currentContextClass);
             }
             for (Class interfaceClass : currentContextClass.getInterfaces()) {
-                System.out.println("Search for " + interfaceClass);
+                logger.debug("Search writer for {}", interfaceClass);
                 if (contextClasses.contains(interfaceClass)) {
                     return (Class<? extends Writer<T>>)collection.get(interfaceClass);
                 }
@@ -74,19 +76,19 @@ public class WriterFactory {
     }
 
     private static <W extends Writer<T>,T> Constructor<W> findConstructor(Class<W> writerClass, T context) {
-        System.out.println("Search constructor...");
+        logger.debug("Search constructor for class {}", writerClass);
         Class currentContextClass = context.getClass();
         while (true) {
             if (currentContextClass == null || currentContextClass == Object.class) {
                 throw new WriterDefinitionException(
                         "No constructor with context class found in " + writerClass.getClass());
             }
-            System.out.println("Search constructor with " + currentContextClass);
+            logger.debug("Search constructor with parameter type {}", currentContextClass);
             try {
                 return writerClass.getConstructor(currentContextClass);
             } catch (NoSuchMethodException ex) {
                 for (Class interfaceClass : currentContextClass.getInterfaces()) {
-                    System.out.println("Search constructor with " + interfaceClass);
+                    logger.debug("Search constructor with parameter type {}", interfaceClass);
                     try {
                         return writerClass.getConstructor(interfaceClass);
                     } catch (NoSuchMethodException exi) {}
