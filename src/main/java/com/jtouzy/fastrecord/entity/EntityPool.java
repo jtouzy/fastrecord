@@ -3,6 +3,7 @@ package com.jtouzy.fastrecord.entity;
 import com.jtouzy.fastrecord.annotations.Column;
 import com.jtouzy.fastrecord.annotations.Entity;
 import com.jtouzy.fastrecord.config.Configuration;
+import com.jtouzy.fastrecord.config.ConfigurationBased;
 import org.reflections.Reflections;
 
 import java.beans.BeanInfo;
@@ -16,17 +17,22 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class EntityPool {
-    private final Configuration configuration;
+public class EntityPool extends ConfigurationBased {
+    private static EntityPool instance = null;
+
     private final LinkedHashMap<Class,EntityDescriptor> entityDescriptorsByClass;
 
-    public EntityPool(Configuration configuration) {
-        this.configuration = configuration;
-        this.entityDescriptorsByClass = new LinkedHashMap<>();
+    public static EntityPool init(Configuration configuration) {
+        if (instance != null)
+            throw new IllegalStateException("EntityPool already initialized!");
+        instance = new EntityPool(configuration);
+        return instance;
     }
 
-    public void init() {
-        readEntities();
+    private EntityPool(Configuration configuration) {
+        super(configuration);
+        this.entityDescriptorsByClass = new LinkedHashMap<>();
+        this.readEntities();
     }
 
     public Set<EntityDescriptor> getEntityDescriptors() {
@@ -34,7 +40,7 @@ public class EntityPool {
     }
 
     private void readEntities() {
-        Reflections reflections = new Reflections(configuration.getEntitiesClassPath());
+        Reflections reflections = new Reflections(getConfiguration().getEntitiesClassPackage());
         Set<Class<?>> entityClasses = reflections.getTypesAnnotatedWith(Entity.class);
         for (Class entityClass : entityClasses) {
             readEntityClass(entityClass);
@@ -52,7 +58,7 @@ public class EntityPool {
         Entity annotation = entityClass.getAnnotation(Entity.class);
         String tableName = annotation.name();
         if (tableName.isEmpty()) {
-            tableName = configuration.getTableNamingStrategy().toDatabaseFormat(entityClass.getSimpleName());
+            tableName = getConfiguration().getTableNamingStrategy().toDatabaseFormat(entityClass.getSimpleName());
         }
         return tableName;
     }
@@ -86,7 +92,7 @@ public class EntityPool {
             columnName = annotation.name();
         }
         if (columnName.isEmpty()) {
-            columnName = configuration.getColumnNamingStrategy().toDatabaseFormat(field.getName());
+            columnName = getConfiguration().getColumnNamingStrategy().toDatabaseFormat(field.getName());
         }
         return columnName;
     }

@@ -2,7 +2,6 @@ package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.statements.context.AliasExpressionContext;
 import com.jtouzy.fastrecord.statements.context.QueryContext;
-import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 import java.util.Iterator;
@@ -15,17 +14,21 @@ public class BaseQueryWriter<T extends QueryContext> extends AbstractWriter<T> {
     @Override
     public DbReadyStatementMetadata write() {
         appendQueryColumns();
-        return new BaseDbReadyStatementMetadata(getSqlString().toString());
+        return buildMetadata();
     }
 
     private void appendQueryColumns() {
         getSqlString().append("SELECT ");
+        // TODO contextValidation for no columns
         Iterator<AliasExpressionContext> it = getContext().getColumnContextList().iterator();
         while (it.hasNext()) {
-            appendSqlStringFromWriter(it.next());
+            mergeWriter(it.next());
             if (it.hasNext()) {
                 getSqlString().append(", ");
             }
         }
+        getSqlString().append(" FROM ");
+        // TODO append FROM
+        // TODO append WHERE
     }
 }

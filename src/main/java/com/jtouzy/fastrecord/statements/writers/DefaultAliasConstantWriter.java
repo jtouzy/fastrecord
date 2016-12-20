@@ -3,10 +3,8 @@ package com.jtouzy.fastrecord.statements.writers;
 import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.AliasConstantContext;
-import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementMetadata;
+import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-
-import java.sql.Types;
 
 @Writes(AliasConstantContext.class)
 public class DefaultAliasConstantWriter extends AbstractWriter<AliasConstantContext> {
@@ -16,20 +14,13 @@ public class DefaultAliasConstantWriter extends AbstractWriter<AliasConstantCont
 
     @Override
     public DbReadyStatementMetadata write() {
-        StringBuilder sqlString = getSqlString();
-        boolean isVarchar = getContext().getType() == Types.VARCHAR;
-        if (isVarchar) {
-            sqlString.append("'");
-        }
-        sqlString.append(getContext().getValue());
-        if (isVarchar) {
-            sqlString.append("'");
-        }
+        getSqlString().append("?");
+        addParameter(new BaseDbReadyStatementParameter(getContext().getValue(), getContext().getType()));
         String alias = getContext().getAlias();
         if (!Strings.isNullOrEmpty(alias)) {
-            sqlString.append(" as ")
-                    .append(alias);
+            getSqlString().append(" as ")
+                          .append(alias);
         }
-        return new BaseDbReadyStatementMetadata(sqlString.toString());
+        return buildMetadata();
     }
 }

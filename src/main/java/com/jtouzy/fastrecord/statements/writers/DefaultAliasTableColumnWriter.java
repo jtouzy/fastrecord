@@ -3,7 +3,6 @@ package com.jtouzy.fastrecord.statements.writers;
 import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.AliasTableColumnContext;
-import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 @Writes(AliasTableColumnContext.class)
@@ -28,6 +27,6 @@ public class DefaultAliasTableColumnWriter extends AbstractWriter<AliasTableColu
             sqlString.append(" as ")
                      .append(alias);
         }
-        return new BaseDbReadyStatementMetadata(sqlString.toString());
+        return buildMetadata();
     }
 }

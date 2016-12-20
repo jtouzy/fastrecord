@@ -1,9 +1,10 @@
 package com.jtouzy.fastrecord.statements.writers;
 
-import com.jtouzy.fastrecord.statements.context.AliasConstantContext;
-import com.jtouzy.fastrecord.statements.context.AliasQueryContext;
-import com.jtouzy.fastrecord.statements.context.AliasTableColumnContext;
-import com.jtouzy.fastrecord.statements.context.QueryContext;
+import com.google.common.base.Strings;
+import com.jtouzy.fastrecord.annotations.support.Writes;
+import com.jtouzy.fastrecord.config.Configuration;
+import com.jtouzy.fastrecord.config.ConfigurationBased;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,36 +14,71 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class WriterFactory {
+public class WriterFactory extends ConfigurationBased {
+    private static WriterFactory instance = null;
     private static final Logger logger = LoggerFactory.getLogger(WriterFactory.class);
-    private static final Map<Class,Class<? extends Writer>> defaultWriters = new LinkedHashMap<>();
-    private static final Map<Class,Class<? extends Writer>> writers = new LinkedHashMap<>();
+    private static final String DEFAULT_WRITERS_CLASS_PACKAGE = "com.jtouzy.fastrecord.statements.writers";
 
-    static {
-        defaultWriters.put(QueryContext.class, DefaultQueryWriter.class);
-        defaultWriters.put(AliasTableColumnContext.class, DefaultAliasTableColumnWriter.class);
-        defaultWriters.put(AliasConstantContext.class, DefaultAliasConstantWriter.class);
-        defaultWriters.put(AliasQueryContext.class, DefaultAliasQueryWriter.class);
+    private Map<Class,Class<? extends Writer>> defaultWriters = new LinkedHashMap<>();
+    private Map<Class,Class<? extends Writer>> writers = new LinkedHashMap<>();
+    private Map<Class,Constructor<? extends Writer>> writersCache = new LinkedHashMap<>();
+
+    private WriterFactory(Configuration configuration) {
+        super(configuration);
+        this.initializeWriters();
     }
 
-    private WriterFactory() {
+    public static WriterFactory init(Configuration configuration) {
+        if (instance != null)
+            throw new IllegalStateException("WriterFactory already initialized!");
+        instance = new WriterFactory(configuration);
+        return instance;
+    }
+
+    private void initializeWriters() {
+        putInCollection(DEFAULT_WRITERS_CLASS_PACKAGE, defaultWriters);
+        putInCollection(getConfiguration().getWritersClassPackage(), writers);
     }
 
     @SuppressWarnings("unchecked")
-    public static <W extends Writer<T>,T> W getWriter(T context) {
-        logger.debug("Getting new writer for context {}...", context);
-        Class<W> writerClass = (Class<W>)findWriterClass(context);
-        Constructor<W> constructor = findConstructor(writerClass, context);
-        try {
-            W writer = constructor.newInstance(context);
-            logger.debug("Writer found {}", writer);
-            return writer;
-        } catch (IllegalAccessException | InvocationTargetException | InstantiationException ex) {
-            throw new WriterDefinitionException("Error while calling " + writerClass.getClass() + " constructor", ex);
+    private void putInCollection(String classPackage, Map<Class,Class<? extends Writer>> collection) {
+        if (Strings.isNullOrEmpty(classPackage)) {
+            return;
+        }
+        Reflections reflections = new Reflections(classPackage);
+        Set<Class<?>> writerClasses = reflections.getTypesAnnotatedWith(Writes.class);
+        for (Class<?> writerClass : writerClasses) {
+            Class contextClass = (writerClass.getAnnotation(Writes.class)).value();
+            if (Writer.class.isAssignableFrom(writerClass)) {
+                defaultWriters.put(contextClass, (Class<? extends Writer>)writerClass);
+            } else {
+                throw new WriterDefinitionException("@Writes annotated class " + contextClass
+                        + " must implement Writer interface");
+            }
         }
     }
 
-    private static <T> Class<? extends Writer<T>> findWriterClass(T context) {
+    @SuppressWarnings("unchecked")
+    public <W extends Writer<T>,T> W getWriter(T context) {
+        logger.debug("Getting new writer for context {}...", context);
+        Constructor<W> constructor = (Constructor<W>)writersCache.get(context.getClass());
+        if (constructor != null) {
+            logger.debug("Get constructor from cache");
+        } else {
+            Class<W> writerClass = (Class<W>) findWriterClass(context);
+            constructor = findConstructor(writerClass, context);
+        }
+        try {
+            W writer = constructor.newInstance(context);
+            writersCache.putIfAbsent(context.getClass(), constructor);
+            logger.debug("Writer found {}", writer);
+            return writer;
+        } catch (IllegalAccessException | InvocationTargetException | InstantiationException ex) {
+            throw new WriterDefinitionException("Error while calling " + constructor.getDeclaringClass() + " constructor", ex);
+        }
+    }
+
+    private <T> Class<? extends Writer<T>> findWriterClass(T context) {
         try {
             logger.debug("Search in writers...");
             return findInCollection(writers, context);
@@ -53,8 +89,8 @@ public class WriterFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> Class<? extends Writer<T>> findInCollection(Map<Class,Class<? extends Writer>> collection,
-                                                                   T context) {
+    private <T> Class<? extends Writer<T>> findInCollection(Map<Class,Class<? extends Writer>> collection,
+                                                            T context) {
         Set<Class> contextClasses = collection.keySet();
         Class currentContextClass = context.getClass();
         while (true) {
@@ -75,7 +111,7 @@ public class WriterFactory {
         }
     }
 
-    private static <W extends Writer<T>,T> Constructor<W> findConstructor(Class<W> writerClass, T context) {
+    private <W extends Writer<T>,T> Constructor<W> findConstructor(Class<W> writerClass, T context) {
         logger.debug("Search constructor for class {}", writerClass);
         Class currentContextClass = context.getClass();
         while (true) {
