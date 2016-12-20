@@ -6,6 +6,11 @@ public class Configuration {
     private NamingStrategy tableNamingStrategy;
     private NamingStrategy columnNamingStrategy;
 
+    public Configuration() {
+        setTableNamingStrategy(NamingStrategy.UPPER_CAMEL_TO_LOWER_UNDERSCORE);
+        setColumnNamingStrategy(NamingStrategy.LOWER_CAMEL_TO_LOWER_UNDERSCORE);
+    }
+
     public String getEntitiesClassPackage() {
         return entitiesClassPackage;
     }
