@@ -81,11 +81,16 @@ public class WriterFactory extends ConfigurationBased {
     }
 
     private <T> Class<? extends Writer<T>> findWriterClass(T context) {
-        try {
-            logger.debug("Search in writers...");
-            return findInCollection(writers, context);
-        } catch (WriterDefinitionException ex) {
-            logger.debug("Search in default writers...");
+        if (writers.size() > 0) {
+            try {
+                logger.debug("Search in writers...");
+                return findInCollection(writers, context);
+            } catch (WriterDefinitionException ex) {
+                logger.debug("No writers found. Search in default writers...");
+                return findInCollection(defaultWriters, context);
+            }
+        } else {
+            logger.debug("No writers defined. Search in default writers...");
             return findInCollection(defaultWriters, context);
         }
     }
