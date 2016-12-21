@@ -1,8 +1,12 @@
 package com.jtouzy.fastrecord;
 
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+
+import static com.jtouzy.fastrecord.config.FastRecordConfiguration.*;
 
 /**
  * FastRecord Spring Configuration
@@ -19,12 +23,10 @@ public class FastRecordBeanConfig {
      * @return FastRecordConfiguration Bean
      */
     @Bean
-    public FastRecordConfiguration configuration() {
+    @Autowired
+    public FastRecordConfiguration configuration(Environment environment) {
         FastRecordConfiguration configuration = new FastRecordConfiguration();
-        configuration.setEntitiesClassPackage("com.jtouzy.fastrecord");
-        // TODO Load configuration and validate
-        // if (configuration.getEntitiesClassPackage() == null) {
-        // throw new ConfigurationException("Entities package must be provided");
+        configuration.setEntitiesClassPackage(environment.getRequiredProperty(ENTITIES_CLASS_PACKAGE));
         return configuration;
     }
 }

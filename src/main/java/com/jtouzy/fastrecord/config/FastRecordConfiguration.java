@@ -1,6 +1,9 @@
 package com.jtouzy.fastrecord.config;
 
 public class FastRecordConfiguration {
+    private static final String FASTRECORD_PROPERTIES_PREFIX = "fastrecord.";
+    public static final String ENTITIES_CLASS_PACKAGE = FASTRECORD_PROPERTIES_PREFIX + "entities.package";
+
     private String entitiesClassPackage;
     private String writersClassPackage;
     private NamingStrategy tableNamingStrategy;
