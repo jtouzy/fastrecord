@@ -10,13 +10,11 @@ public class BaseConditionsContext implements ConditionsContext {
     }
 
     @Override
-    public void addConditionContext(ConditionContext conditionContext) {
-        this.conditions.addFirst(conditionContext);
-    }
-
-    @Override
     public void addConditionContext(ConditionsOperator operator, ConditionContext conditionContext) {
-        this.conditions.add(operator, conditionContext);
+        if (conditions.size() == 0)
+            this.conditions.addFirst(conditionContext);
+        else
+            this.conditions.add(operator, conditionContext);
     }
 
     @Override

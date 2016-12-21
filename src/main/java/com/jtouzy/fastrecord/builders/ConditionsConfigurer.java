@@ -19,11 +19,7 @@ public class ConditionsConfigurer<T> {
     }
 
     private void addCondition(ConditionsOperator operator, ConditionContext conditionContext) {
-        if (operator != null) {
-            queryBuilder.queryContext.getConditionsContext().addConditionContext(operator, conditionContext);
-        } else {
-            queryBuilder.queryContext.getConditionsContext().addConditionContext(conditionContext);
-        }
+        queryBuilder.queryContext.getConditionsContext().addConditionContext(operator, conditionContext);
     }
 
     private ConditionsConfigurer<T> createSimpleCondition(ConditionsOperator conditionsOperator, String propertyName,
@@ -43,22 +39,17 @@ public class ConditionsConfigurer<T> {
         return this;
     }
 
-    private ConditionsConfigurer<T> createSimpleCondition(String propertyName, ConditionOperator operator,
-                                                          String value) {
-        return createSimpleCondition(null, propertyName, operator, value);
+    public ConditionsConfigurer<T> eq(String propertyName, String value) {
+        return andEq(propertyName, value);
     }
-
-    public ConditionsConfigurer<T> whereEq(String propertyName, String value) {
-        return createSimpleCondition(propertyName, ConditionOperator.EQUALS, value);
+    public ConditionsConfigurer<T> notEq(String propertyName, String value) {
+        return andNotEq(propertyName, value);
     }
-    public ConditionsConfigurer<T> whereNotEq(String propertyName, String value) {
-        return createSimpleCondition(propertyName, ConditionOperator.NOT_EQUALS, value);
+    public ConditionsConfigurer<T> like(String propertyName, String value) {
+        return andLike(propertyName, value);
     }
-    public ConditionsConfigurer<T> whereLike(String propertyName, String value) {
-        return createSimpleCondition(propertyName, ConditionOperator.LIKE, value);
-    }
-    public ConditionsConfigurer<T> whereNotLike(String propertyName, String value) {
-        return createSimpleCondition(propertyName, ConditionOperator.NOT_LIKE, value);
+    public ConditionsConfigurer<T> notLike(String propertyName, String value) {
+        return andNotLike(propertyName, value);
     }
     public ConditionsConfigurer<T> andEq(String propertyName, String value) {
         return createSimpleCondition(ConditionsOperator.AND, propertyName, ConditionOperator.EQUALS, value);
