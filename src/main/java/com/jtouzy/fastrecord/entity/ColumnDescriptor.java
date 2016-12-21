@@ -3,21 +3,23 @@ package com.jtouzy.fastrecord.entity;
 import java.lang.reflect.Method;
 
 public class ColumnDescriptor {
-    private String propertyName;
-    private Class propertyType;
-    private Method propertyGetter;
-    private Method propertySetter;
-    private String columnName;
+    private final String propertyName;
+    private final Class propertyType;
+    private final Method propertyGetter;
+    private final Method propertySetter;
+    private final String columnName;
+    private final boolean id;
     private int columnType;
 
     public ColumnDescriptor(String propertyName, Class propertyType, Method propertyGetter, Method propertySetter,
-                            String columnName, int columnType) {
+                            String columnName, int columnType, boolean id) {
         this.propertyName = propertyName;
         this.propertyType = propertyType;
         this.propertyGetter = propertyGetter;
         this.propertySetter = propertySetter;
         this.columnName = columnName;
         this.columnType = columnType;
+        this.id = id;
     }
 
     public String getPropertyName() {
@@ -44,6 +46,14 @@ public class ColumnDescriptor {
         return columnType;
     }
 
+    public void setColumnType(int columnType) {
+        this.columnType = columnType;
+    }
+
+    public boolean isId() {
+        return id;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder(super.toString());
@@ -54,6 +64,7 @@ public class ColumnDescriptor {
         sb.append(", propertySetter=").append(propertySetter);
         sb.append(", columnName='").append(columnName).append('\'');
         sb.append(", columnType=").append(columnType);
+        sb.append(", id=").append(id);
         sb.append(']');
         return sb.toString();
     }

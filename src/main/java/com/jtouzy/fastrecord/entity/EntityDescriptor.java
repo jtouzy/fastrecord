@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class EntityDescriptor {
     private final Class clazz;
@@ -35,6 +36,11 @@ public class EntityDescriptor {
 
     public List<ColumnDescriptor> getColumnDescriptors() {
         return new ArrayList<>(columnDescriptorsByProperty.values());
+    }
+
+    public List<ColumnDescriptor> getIdColumnDescriptors() {
+        return columnDescriptorsByProperty.values().stream()
+                .filter(ColumnDescriptor::isId).collect(Collectors.toList());
     }
 
     @Override
