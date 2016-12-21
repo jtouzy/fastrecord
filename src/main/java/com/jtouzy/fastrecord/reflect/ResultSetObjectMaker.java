@@ -31,8 +31,8 @@ public class ResultSetObjectMaker<T> {
                 // TODO discover for each From Table Alias the EntityDescriptor mapped (need to get it from Query)
                 instance = (T)entityDescriptor.getClazz().newInstance();
                 for (ColumnDescriptor descriptor : entityDescriptor.getColumnDescriptors()) {
-                    descriptor.getPropertySetter().invoke(instance, resultSet.getObject(new StringBuilder().append(entityDescriptor.getTableName())
-                            .append(".").append(descriptor.getColumnName()).toString()));
+                    descriptor.getPropertySetter().invoke(instance, resultSet.getObject(new StringBuilder()/*.append(entityDescriptor.getTableName())
+                            .append(".")*/.append(descriptor.getColumnName()).toString()));
                 }
                 results.add(instance);
             }

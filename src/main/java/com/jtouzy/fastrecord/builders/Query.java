@@ -5,14 +5,33 @@ import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDefinitionException;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityNotFoundException;
-import com.jtouzy.fastrecord.statements.context.*;
+import com.jtouzy.fastrecord.reflect.ResultSetObjectMaker;
+import com.jtouzy.fastrecord.statements.context.BaseAliasTableColumnContext;
+import com.jtouzy.fastrecord.statements.context.BaseConditionContext;
+import com.jtouzy.fastrecord.statements.context.BaseQueryContext;
+import com.jtouzy.fastrecord.statements.context.BaseTableAliasContext;
+import com.jtouzy.fastrecord.statements.context.BaseTableColumnContext;
+import com.jtouzy.fastrecord.statements.context.ConditionContext;
+import com.jtouzy.fastrecord.statements.context.ConditionOperator;
+import com.jtouzy.fastrecord.statements.context.ConditionsOperator;
+import com.jtouzy.fastrecord.statements.context.JoinOperator;
+import com.jtouzy.fastrecord.statements.context.QueryContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
 public class Query<T> {
+    private static final Logger logger = LoggerFactory.getLogger(Query.class);
+
     public static <T> Query<T> from(Class<T> entityClass) {
         return new Query<>(entityClass);
     }
@@ -114,5 +133,26 @@ public class Query<T> {
 
     public String getSql() {
         return writeMetadata().getSqlString().toString();
+    }
+
+    public List<T> findAll() {
+        ResultSet rs;
+        try {
+            Connection connection = null;
+            DbReadyStatementMetadata metadata = writeMetadata();
+            String sqlString = metadata.getSqlString().toString();
+            logger.debug("SQL String [{}]", sqlString);
+            PreparedStatement preparedStatement = connection.prepareStatement(sqlString);
+            int index = 1;
+            for (DbReadyStatementParameter parameter : metadata.getParameters()) {
+                preparedStatement.setObject(index, parameter.getValue(), parameter.getType());
+                index ++;
+            }
+            rs = preparedStatement.executeQuery();
+        } catch (SQLException ex) {
+            throw new QueryException(ex);
+        }
+        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(queryContext, entityDescriptor, rs);
+        return objectMaker.make();
     }
 }
