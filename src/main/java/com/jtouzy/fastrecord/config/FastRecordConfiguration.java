@@ -1,12 +1,12 @@
 package com.jtouzy.fastrecord.config;
 
-public class Configuration {
+public class FastRecordConfiguration {
     private String entitiesClassPackage;
     private String writersClassPackage;
     private NamingStrategy tableNamingStrategy;
     private NamingStrategy columnNamingStrategy;
 
-    public Configuration() {
+    public FastRecordConfiguration() {
         setTableNamingStrategy(NamingStrategy.UPPER_CAMEL_TO_LOWER_UNDERSCORE);
         setColumnNamingStrategy(NamingStrategy.LOWER_CAMEL_TO_LOWER_UNDERSCORE);
     }

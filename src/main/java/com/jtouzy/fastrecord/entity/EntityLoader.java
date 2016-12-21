@@ -5,11 +5,13 @@ import com.google.common.collect.Multimap;
 import com.jtouzy.fastrecord.annotations.Column;
 import com.jtouzy.fastrecord.annotations.Entity;
 import com.jtouzy.fastrecord.annotations.Id;
-import com.jtouzy.fastrecord.config.Configuration;
+import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.config.ConfigurationBased;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -23,13 +25,21 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
-class EntityLoader extends ConfigurationBased {
+/**
+ * Singleton EntityLoader Bean
+ * This bean is used to load all the EntityDescriptors from the Entity classes.
+ *
+ * @author jtouzy
+ */
+@Service
+public class EntityLoader extends ConfigurationBased {
     private static final Logger logger = LoggerFactory.getLogger(EntityLoader.class);
 
     private final LinkedHashMap<Class,EntityDescriptor> entityDescriptorsByClass;
     private final Multimap<Class,ColumnDescriptor> laterLoading = ArrayListMultimap.create();
 
-    public EntityLoader(Configuration configuration) {
+    @Autowired
+    public EntityLoader(FastRecordConfiguration configuration) {
         super(configuration);
         entityDescriptorsByClass = new LinkedHashMap<>();
     }

@@ -1,29 +1,30 @@
 package com.jtouzy.fastrecord.entity;
 
-import com.jtouzy.fastrecord.config.Configuration;
 import com.jtouzy.fastrecord.config.ConfigurationBased;
+import com.jtouzy.fastrecord.config.FastRecordConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Singleton EntityPool Bean
+ * This bean is used to create and store all the EntityDescriptors auto-registered by EntityLoader.
+ *
+ * @author jtouzy
+ */
+@Service
 public class EntityPool extends ConfigurationBased {
-    private static EntityPool instance = null;
-
     private final LinkedHashMap<Class,EntityDescriptor> entityDescriptorsByClass;
 
-    public static EntityPool init(Configuration configuration) {
-        if (instance != null)
-            throw new IllegalStateException("EntityPool already initialized!");
-        instance = new EntityPool(configuration);
-        return instance;
-    }
-
-    private EntityPool(Configuration configuration) {
+    @Autowired
+    private EntityPool(FastRecordConfiguration configuration, EntityLoader entityLoader) {
         super(configuration);
         this.entityDescriptorsByClass = new LinkedHashMap<>();
-        this.entityDescriptorsByClass.putAll(new EntityLoader(configuration).load());
+        this.entityDescriptorsByClass.putAll(entityLoader.load());
     }
 
     public Optional<EntityDescriptor> getEntityDescriptor(Class entityClass) {

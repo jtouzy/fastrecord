@@ -1,13 +1,13 @@
 package com.jtouzy.fastrecord.config;
 
 public class ConfigurationBased {
-    private final Configuration configuration;
+    private final FastRecordConfiguration configuration;
 
-    public ConfigurationBased(Configuration configuration) {
+    public ConfigurationBased(FastRecordConfiguration configuration) {
         this.configuration = configuration;
     }
 
-    public Configuration getConfiguration() {
+    public FastRecordConfiguration getConfiguration() {
         return configuration;
     }
 }

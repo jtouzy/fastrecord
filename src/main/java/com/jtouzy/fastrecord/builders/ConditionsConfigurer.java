@@ -12,9 +12,9 @@ import com.jtouzy.fastrecord.statements.context.ConditionsOperator;
 import java.util.Optional;
 
 public class ConditionsConfigurer<T> {
-    private final Query<T> queryBuilder;
+    private final EntityBasedQuery<T> queryBuilder;
 
-    ConditionsConfigurer(Query<T> queryBuilder) {
+    ConditionsConfigurer(EntityBasedQuery<T> queryBuilder) {
         this.queryBuilder = queryBuilder;
     }
 
@@ -76,7 +76,7 @@ public class ConditionsConfigurer<T> {
         return createSimpleCondition(ConditionsOperator.OR, propertyName, ConditionOperator.NOT_LIKE, value);
     }
 
-    public Query<T> end() {
+    public EntityBasedQuery<T> end() {
         return this.queryBuilder;
     }
 }

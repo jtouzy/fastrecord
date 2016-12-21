@@ -28,7 +28,7 @@ public class ResultSetObjectMaker<T> {
             T instance;
             while (resultSet.next()) {
                 // TODO iterate over From Context on Each Table
-                // TODO discover for each From Table Alias the EntityDescriptor mapped (need to get it from Query)
+                // TODO discover for each From Table Alias the EntityDescriptor mapped (need to get it from EntityBasedQuery)
                 instance = (T)entityDescriptor.getClazz().newInstance();
                 for (ColumnDescriptor descriptor : entityDescriptor.getColumnDescriptors()) {
                     descriptor.getPropertySetter().invoke(instance, resultSet.getObject(new StringBuilder()/*.append(entityDescriptor.getTableName())

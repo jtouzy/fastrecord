@@ -2,11 +2,13 @@ package com.jtouzy.fastrecord.statements.writers;
 
 import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Writes;
-import com.jtouzy.fastrecord.config.Configuration;
 import com.jtouzy.fastrecord.config.ConfigurationBased;
+import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -14,8 +16,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Singleton WriterFactory Bean
+ * This bean is used to create all the writers needed to create a full SQLStatement.
+ *
+ * @author jtouzy
+ */
+@Service
 public class WriterFactory extends ConfigurationBased {
-    private static WriterFactory instance = null;
     private static final Logger logger = LoggerFactory.getLogger(WriterFactory.class);
     private static final String DEFAULT_WRITERS_CLASS_PACKAGE = "com.jtouzy.fastrecord.statements.writers";
 
@@ -23,16 +31,10 @@ public class WriterFactory extends ConfigurationBased {
     private Map<Class,Class<? extends Writer>> writers = new LinkedHashMap<>();
     private Map<Class,Constructor<? extends Writer>> writersCache = new LinkedHashMap<>();
 
-    private WriterFactory(Configuration configuration) {
+    @Autowired
+    private WriterFactory(FastRecordConfiguration configuration) {
         super(configuration);
         this.initializeWriters();
-    }
-
-    public static WriterFactory init(Configuration configuration) {
-        if (instance != null)
-            throw new IllegalStateException("WriterFactory already initialized!");
-        instance = new WriterFactory(configuration);
-        return instance;
     }
 
     private void initializeWriters() {
