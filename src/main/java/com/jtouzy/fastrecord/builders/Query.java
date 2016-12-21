@@ -8,6 +8,7 @@ import com.jtouzy.fastrecord.statements.context.BaseAliasTableColumnContext;
 import com.jtouzy.fastrecord.statements.context.BaseQueryContext;
 import com.jtouzy.fastrecord.statements.context.BaseTableAliasContext;
 import com.jtouzy.fastrecord.statements.context.QueryContext;
+import com.jtouzy.fastrecord.statements.context.JoinOperator;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
 
@@ -28,13 +29,17 @@ public class Query<T> {
         initializeContext();
     }
 
-    private void checkEntity(Class<T> entityClass) {
+    private EntityDescriptor findEntityDescriptorWithClass(Class entityClass) {
         Optional<EntityDescriptor> entityDescriptorOptional =
                 FastRecord.fr().getEntityPool().getEntityDescriptor(entityClass);
         if (!entityDescriptorOptional.isPresent()) {
             throw new EntityNotFoundException(entityClass);
         }
-        this.entityDescriptor = entityDescriptorOptional.get();
+        return entityDescriptorOptional.get();
+    }
+
+    private void checkEntity(Class<T> entityClass) {
+        this.entityDescriptor = findEntityDescriptorWithClass(entityClass);
     }
 
     private void initializeContext() {
@@ -55,6 +60,13 @@ public class Query<T> {
 
     private DbReadyStatementMetadata writeMetadata() {
         return FastRecord.fr().getWriterFactory().getWriter(writerCache, queryContext).write();
+    }
+
+    public Query<T> fill(Class filledEntityClass) {
+        EntityDescriptor relatedDescriptor = findEntityDescriptorWithClass(filledEntityClass);
+        queryContext.addFromContext(JoinOperator.JOIN, new BaseTableAliasContext("", relatedDescriptor.getTableName()));
+        // TODO Add joins
+        return this;
     }
 
     public ConditionsConfigurer<T> conditions() {
