@@ -1,5 +1,6 @@
 package com.jtouzy.fastrecord.builders;
 
+import com.jtouzy.fastrecord.config.FastRecordConstants;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDefinitionException;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
@@ -99,7 +100,7 @@ public class EntityBasedQuery<T> {
             if (columnToFillDescriptor != null && columnDescriptor.equals(columnToFillDescriptor.getRelatedColumn())) {
                 continue;
             }
-            columnAlias = tableAlias + "_" + columnDescriptor.getColumnName();
+            columnAlias = tableAlias + FastRecordConstants.COLUMN_ALIAS_SEPARATOR + columnDescriptor.getColumnName();
             queryContext.addColumnContext(new BaseAliasTableColumnContext(columnAlias, tableAlias,
                     entityDescriptor.getTableName(), columnDescriptor.getColumnName(),
                     columnDescriptor.getColumnType()));

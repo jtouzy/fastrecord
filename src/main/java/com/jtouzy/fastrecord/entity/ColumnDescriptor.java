@@ -1,10 +1,10 @@
 package com.jtouzy.fastrecord.entity;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class ColumnDescriptor {
-    private final String propertyName;
-    private final Class propertyType;
+    private final Field propertyField;
     private final Method propertyGetter;
     private final Method propertySetter;
     private final String columnName;
@@ -12,10 +12,9 @@ public class ColumnDescriptor {
     private int columnType;
     private ColumnDescriptor relatedColumn;
 
-    public ColumnDescriptor(String propertyName, Class propertyType, Method propertyGetter, Method propertySetter,
+    public ColumnDescriptor(Field propertyField, Method propertyGetter, Method propertySetter,
                             String columnName, int columnType, boolean id) {
-        this.propertyName = propertyName;
-        this.propertyType = propertyType;
+        this.propertyField = propertyField;
         this.propertyGetter = propertyGetter;
         this.propertySetter = propertySetter;
         this.columnName = columnName;
@@ -24,7 +23,7 @@ public class ColumnDescriptor {
     }
 
     public String getPropertyName() {
-        return propertyName;
+        return propertyField.getName();
     }
 
     public Method getPropertyGetter() {
@@ -40,7 +39,11 @@ public class ColumnDescriptor {
     }
 
     public Class getPropertyType() {
-        return propertyType;
+        return propertyField.getType();
+    }
+
+    public Field getPropertyField() {
+        return propertyField;
     }
 
     public int getColumnType() {
@@ -71,8 +74,8 @@ public class ColumnDescriptor {
     public String toString() {
         final StringBuilder sb = new StringBuilder(super.toString());
         sb.append('[');
-        sb.append("propertyName='").append(propertyName).append('\'');
-        sb.append(", propertyType=").append(propertyType);
+        sb.append("propertyName='").append(propertyField.getName()).append('\'');
+        sb.append(", propertyType=").append(propertyField.getType());
         sb.append(", propertyGetter=").append(propertyGetter);
         sb.append(", propertySetter=").append(propertySetter);
         sb.append(", columnName='").append(columnName).append('\'');

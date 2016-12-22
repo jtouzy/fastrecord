@@ -3,6 +3,7 @@ package com.jtouzy.fastrecord.entity;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.jtouzy.fastrecord.annotations.Column;
+import com.jtouzy.fastrecord.annotations.Columns;
 import com.jtouzy.fastrecord.annotations.Entity;
 import com.jtouzy.fastrecord.annotations.Id;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
@@ -20,6 +21,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,8 +94,8 @@ public class EntityLoader extends ConfigurationBased {
                 field = descriptor.getClazz().getDeclaredField(propertyDescriptor.getName());
                 if (setter != null && getter != null) {
                     columnType = analyzeBasicColumnType(field);
-                    columnDescriptor = new ColumnDescriptor(field.getName(), field.getType(),
-                            getter, setter, analyzeColumnName(field), columnType, analyzeId(field));
+                    columnDescriptor = new ColumnDescriptor(field, getter, setter, analyzeColumnName(field),
+                            columnType, analyzeId(field));
                     descriptor.addColumnDescriptor(columnDescriptor);
                     if (columnType == -1) {
                         laterLoading.put(descriptor.getClazz(), columnDescriptor);
@@ -147,35 +149,83 @@ public class EntityLoader extends ConfigurationBased {
 
     private void loadLateEntities() {
         logger.debug("Late loading entities...");
-        EntityDescriptor entityDescriptor;
+        EntityDescriptor entityDescriptor, relatedEntityDescriptor;
         List<ColumnDescriptor> idColumns;
         ColumnDescriptor idColumn;
         for (Class unloadedClass : laterLoading.keySet()) {
             Collection<ColumnDescriptor> unloadedColumns = laterLoading.get(unloadedClass);
+            entityDescriptor = entityDescriptorsByClass.get(unloadedClass);
             for (ColumnDescriptor columnDescriptor : unloadedColumns) {
-                entityDescriptor = entityDescriptorsByClass.get(columnDescriptor.getPropertyType());
-                if (entityDescriptor == null) {
+                relatedEntityDescriptor = entityDescriptorsByClass.get(columnDescriptor.getPropertyType());
+                if (relatedEntityDescriptor == null) {
                     logger.error("EntityDescriptor for class " + columnDescriptor.getPropertyType() + " not found");
                     throw new UnsupportedJavaTypeException(columnDescriptor.getPropertyType());
                 }
-                idColumns = entityDescriptor.getIdColumnDescriptors();
+                idColumns = relatedEntityDescriptor.getIdColumnDescriptors();
                 if (idColumns.size() == 0) {
                     throw new EntityDefinitionException("Related entity [" + columnDescriptor.getPropertyType() +
                             "] defined in [" + unloadedClass + "] doesn't have an Id column");
                 }
                 if (idColumns.size() > 1) {
-                    throw new EntityDefinitionException("Only one column defined in [" + unloadedClass +
-                            "] with type [" + columnDescriptor.getPropertyType() + "].\n" +
-                            "The related entity describes more than one Id column");
+                    createMultipleIdEntity(unloadedClass, entityDescriptor, columnDescriptor, idColumns);
                 } else {
                     idColumn = idColumns.get(0);
                     logger.debug("Related entity column [{}.{}] registers SQL type [{}] from [{}] in [{}]",
                             unloadedClass, columnDescriptor.getColumnName(), idColumn.getColumnType(), idColumn.getColumnName(),
-                            entityDescriptor.getClazz());
+                            relatedEntityDescriptor.getClazz());
                     columnDescriptor.setColumnType(idColumn.getColumnType());
                     columnDescriptor.setRelatedColumn(idColumn);
                 }
             }
+        }
+    }
+
+    private void createMultipleIdEntity(Class unloadedClass, EntityDescriptor entityDescriptor,
+                                        ColumnDescriptor columnDescriptor,
+                                        List<ColumnDescriptor> relatedEntityIdColumns) {
+        Columns columnsAnnotation = columnDescriptor.getPropertyField().getAnnotation(Columns.class);
+        if (columnsAnnotation == null) {
+            throw new EntityDefinitionException("Only one column defined in [" + unloadedClass +
+                    "] with type [" + columnDescriptor.getPropertyType() + "].\n" +
+                    "The related entity describes more than one Id column : Annotation @Columns is needed.");
+        }
+        if (columnsAnnotation.columns().length != columnsAnnotation.related().length) {
+            throw new EntityDefinitionException("@Columns annotation malformed in [" + unloadedClass +
+                    "] : " + columnsAnnotation.columns().length + " columns, " + columnsAnnotation.related().length +
+                    " related columns. It must be the same number of columns.");
+        }
+        if (columnsAnnotation.columns().length != relatedEntityIdColumns.size()) {
+            throw new EntityDefinitionException("@Columns annotation malformed in [" + unloadedClass +
+                    "] : " + columnsAnnotation.columns().length + " columns, but the related entity have " +
+                    relatedEntityIdColumns.size() + " Id columns");
+        }
+        List<String> relatedColumns = Arrays.asList(columnsAnnotation.related());
+        ColumnDescriptor newColumnDescriptor;
+        String associatedColumn;
+        boolean removeColumnDescriptorOrigin = false;
+        for (ColumnDescriptor relatedEntityIdColumn : relatedEntityIdColumns) {
+            if (!relatedColumns.contains(relatedEntityIdColumn.getPropertyName())) {
+                throw new EntityDefinitionException("@Columns annotation malformed in [" + unloadedClass +
+                        "] : Id column [" + relatedEntityIdColumn.getPropertyName() +
+                        "] is not referenced in the related() annotation property");
+            }
+            associatedColumn = columnsAnnotation.columns()
+                    [relatedColumns.indexOf(relatedEntityIdColumn.getPropertyName())];
+            if (associatedColumn.isEmpty()) {
+                throw new EntityDefinitionException("@Columns annotation malformed in [" + unloadedClass
+                        + "] : Entity column cannot be empty.");
+            }
+            if (associatedColumn.equals(columnDescriptor.getPropertyName())) {
+                removeColumnDescriptorOrigin = true;
+            }
+            newColumnDescriptor = new ColumnDescriptor(columnDescriptor.getPropertyField(),
+                    columnDescriptor.getPropertyGetter(), columnDescriptor.getPropertySetter(),
+                    associatedColumn, relatedEntityIdColumn.getColumnType(), columnDescriptor.isId());
+            newColumnDescriptor.setRelatedColumn(relatedEntityIdColumn);
+            entityDescriptor.addColumnDescriptor(newColumnDescriptor);
+        }
+        if (removeColumnDescriptorOrigin) {
+            entityDescriptor.removeColumnDescriptor(columnDescriptor);
         }
     }
 }

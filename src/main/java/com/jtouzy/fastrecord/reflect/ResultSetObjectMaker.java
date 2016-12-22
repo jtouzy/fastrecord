@@ -1,5 +1,6 @@
 package com.jtouzy.fastrecord.reflect;
 
+import com.jtouzy.fastrecord.config.FastRecordConstants;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 
@@ -40,6 +41,7 @@ public class ResultSetObjectMaker<T> {
             while (resultSet.next()) {
                 // New instance of the main object
                 instance = (T)entityDescriptor.getClazz().newInstance();
+                // TODO algorithm revision to handle all the sub-entities
                 // Related objects in the main object
                 // > This map is used to optimize because when a sub-entity is created, the instance is not stored
                 //   except in the parent object property. So, to omit a reflection GET call of the property, we
@@ -47,16 +49,19 @@ public class ResultSetObjectMaker<T> {
                 relatedObjects = new HashMap<>();
                 // Iterate over the columns of the resultSet
                 for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i ++) {
-                    // Access to the column label : tableAlias0_tableColumn
+                    // Access to the column label : tableAlias0$$tableColumn
                     columnLabel = resultSet.getMetaData().getColumnLabel(i);
                     // Get the current table alias : tableAlias0
-                    tableAlias = columnLabel.substring(0, columnLabel.indexOf("_"));
+                    tableAlias = columnLabel.substring(0, columnLabel.indexOf(FastRecordConstants.COLUMN_ALIAS_SEPARATOR));
                     // Get the current EntityDescriptor from the EntityDescriptor array
                     // > All the EntityDescriptors used in the Query are stored in the entityDescriptorByAlias
                     currentDescriptor = entityDescriptorsByAlias.get(tableAlias);
                     // Get the current ColumnDescriptor from the current EntityDescriptor
                     // TODO optional checking to the descriptor column
-                    descriptor = currentDescriptor.getColumnDescriptorByColumn(columnLabel.substring(columnLabel.indexOf("_")+1)).get();
+                    descriptor = currentDescriptor.getColumnDescriptorByColumn(
+                            columnLabel.substring(columnLabel.indexOf(
+                                    FastRecordConstants.COLUMN_ALIAS_SEPARATOR)+
+                                    FastRecordConstants.COLUMN_ALIAS_SEPARATOR.length())).get();
                     // 1 - When the EntityDescriptor is the base-ED (the main from the Query request) and when the
                     //     Column is a related one (from another object), we creates the instance (because all of
                     //     the properties of this objects will be fetched in the next columns of the ResultSet)
@@ -85,6 +90,7 @@ public class ResultSetObjectMaker<T> {
                 results.add(instance);
             }
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | SQLException ex) {
+            // TODO IllegalArgumentException if argument type mismatch + Other exceptions?
             throw new ObjectCreationException(ex);
         }
         return results;

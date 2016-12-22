@@ -10,12 +10,12 @@ import java.util.stream.Collectors;
 public class EntityDescriptor {
     private final Class clazz;
     private final String tableName;
-    private final Map<String,ColumnDescriptor> columnDescriptorsByProperty;
+    private final Map<String,ColumnDescriptor> columnDescriptorsByColumn;
 
     public EntityDescriptor(Class clazz, String tableName) {
         this.clazz = clazz;
         this.tableName = tableName;
-        this.columnDescriptorsByProperty = new HashMap<>();
+        this.columnDescriptorsByColumn = new HashMap<>();
     }
 
     public Class getClazz() {
@@ -27,29 +27,33 @@ public class EntityDescriptor {
     }
 
     public void addColumnDescriptor(ColumnDescriptor columnDescriptor) {
-        this.columnDescriptorsByProperty.put(columnDescriptor.getPropertyName(), columnDescriptor);
+        this.columnDescriptorsByColumn.put(columnDescriptor.getColumnName(), columnDescriptor);
     }
 
-    public Optional<ColumnDescriptor> getColumnDescriptor(String propertyName) {
-        return Optional.ofNullable(columnDescriptorsByProperty.get(propertyName));
+    public void removeColumnDescriptor(ColumnDescriptor columnDescriptor) {
+        this.columnDescriptorsByColumn.remove(columnDescriptor.getColumnName());
+    }
+
+    public List<ColumnDescriptor> getColumnDescriptorsByProperty(String propertyName) {
+        return columnDescriptorsByColumn.values().stream()
+                .filter(d -> d.getPropertyName().equals(propertyName)).collect(Collectors.toList());
     }
 
     public Optional<ColumnDescriptor> getColumnDescriptorByColumn(String columnName) {
-        return columnDescriptorsByProperty.values().stream()
-                .filter(d -> d.getColumnName().equals(columnName)).findFirst();
+        return Optional.ofNullable(columnDescriptorsByColumn.get(columnName));
     }
 
     public List<ColumnDescriptor> getColumnDescriptorsWithType(Class propertyType) {
-        return columnDescriptorsByProperty.values().stream()
+        return columnDescriptorsByColumn.values().stream()
                 .filter(p -> p.getPropertyType() == propertyType).collect(Collectors.toList());
     }
 
     public List<ColumnDescriptor> getColumnDescriptors() {
-        return new ArrayList<>(columnDescriptorsByProperty.values());
+        return new ArrayList<>(columnDescriptorsByColumn.values());
     }
 
     public List<ColumnDescriptor> getIdColumnDescriptors() {
-        return columnDescriptorsByProperty.values().stream()
+        return columnDescriptorsByColumn.values().stream()
                 .filter(ColumnDescriptor::isId).collect(Collectors.toList());
     }
 
@@ -59,7 +63,7 @@ public class EntityDescriptor {
         sb.append('[');
         sb.append("clazz=").append(clazz);
         sb.append(", tableName='").append(tableName).append('\'');
-        sb.append(", columnCount='").append(columnDescriptorsByProperty.size()).append('\'');
+        sb.append(", columnCount='").append(columnDescriptorsByColumn.size()).append('\'');
         sb.append(']');
         return sb.toString();
     }
