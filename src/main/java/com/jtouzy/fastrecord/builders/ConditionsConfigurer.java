@@ -31,7 +31,7 @@ public class ConditionsConfigurer<T> {
         }
         ColumnDescriptor columnDescriptor = columnDescriptorOptional.get();
         ConditionContext conditionContext = new BaseConditionContext(operator);
-        conditionContext.addFirstExpression(new BaseTableColumnContext("",
+        conditionContext.addFirstExpression(new BaseTableColumnContext(queryBuilder.firstEntityDescriptorAlias,
                 queryBuilder.entityDescriptor.getTableName(), columnDescriptor.getColumnName(),
                 columnDescriptor.getColumnType()));
         conditionContext.addCompareExpression(new BaseConstantContext(value, columnDescriptor.getColumnType()));

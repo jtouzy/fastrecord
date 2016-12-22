@@ -10,6 +10,7 @@ public class ColumnDescriptor {
     private final String columnName;
     private final boolean id;
     private int columnType;
+    private ColumnDescriptor relatedColumn;
 
     public ColumnDescriptor(String propertyName, Class propertyType, Method propertyGetter, Method propertySetter,
                             String columnName, int columnType, boolean id) {
@@ -52,6 +53,18 @@ public class ColumnDescriptor {
 
     public boolean isId() {
         return id;
+    }
+
+    public boolean isRelated() {
+        return this.relatedColumn != null;
+    }
+
+    public ColumnDescriptor getRelatedColumn() {
+        return relatedColumn;
+    }
+
+    public void setRelatedColumn(ColumnDescriptor relatedColumn) {
+        this.relatedColumn = relatedColumn;
     }
 
     @Override

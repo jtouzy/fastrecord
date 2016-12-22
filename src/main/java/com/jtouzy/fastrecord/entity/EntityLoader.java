@@ -173,6 +173,7 @@ public class EntityLoader extends ConfigurationBased {
                             unloadedClass, columnDescriptor.getColumnName(), idColumn.getColumnType(), idColumn.getColumnName(),
                             entityDescriptor.getClazz());
                     columnDescriptor.setColumnType(idColumn.getColumnType());
+                    columnDescriptor.setRelatedColumn(idColumn);
                 }
             }
         }

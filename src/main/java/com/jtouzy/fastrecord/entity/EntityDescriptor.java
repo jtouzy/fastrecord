@@ -34,6 +34,11 @@ public class EntityDescriptor {
         return Optional.ofNullable(columnDescriptorsByProperty.get(propertyName));
     }
 
+    public Optional<ColumnDescriptor> getColumnDescriptorByColumn(String columnName) {
+        return columnDescriptorsByProperty.values().stream()
+                .filter(d -> d.getColumnName().equals(columnName)).findFirst();
+    }
+
     public List<ColumnDescriptor> getColumnDescriptorsWithType(Class propertyType) {
         return columnDescriptorsByProperty.values().stream()
                 .filter(p -> p.getPropertyType() == propertyType).collect(Collectors.toList());

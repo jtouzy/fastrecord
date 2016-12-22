@@ -16,6 +16,7 @@ import com.jtouzy.fastrecord.statements.context.ConditionOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionsOperator;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
 import com.jtouzy.fastrecord.statements.context.QueryContext;
+import com.jtouzy.fastrecord.statements.context.TableAliasContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
@@ -31,7 +32,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -49,8 +52,11 @@ public class EntityBasedQuery<T> {
     private DataSource dataSource;
 
     EntityDescriptor entityDescriptor;
+    String firstEntityDescriptorAlias;
     QueryContext queryContext;
     private ConditionsConfigurer<T> conditionsConfigurer;
+    private Map<String,EntityDescriptor> entityDescriptorsByAlias;
+    private Map<ColumnDescriptor,String> columnDescriptorAliasMapping;
 
     private EntityBasedQuery() {
     }
@@ -75,21 +81,47 @@ public class EntityBasedQuery<T> {
 
     private void initializeContext() {
         this.conditionsConfigurer = new ConditionsConfigurer<>(this);
+        this.entityDescriptorsByAlias = new HashMap<>();
+        this.columnDescriptorAliasMapping = new HashMap<>();
         createQueryContextWithEntity();
     }
 
     private void createQueryContextWithEntity() {
         queryContext = new BaseQueryContext();
-        createQueryColumnsWithEntity(entityDescriptor);
-        queryContext.addFromContext(new BaseTableAliasContext("", entityDescriptor.getTableName()));
+        firstEntityDescriptorAlias = createEntityDescriptorContext(entityDescriptor);
     }
 
-    private void createQueryColumnsWithEntity(EntityDescriptor entityDescriptor) {
+    private String createQueryColumnsWithEntity(EntityDescriptor entityDescriptor) {
+        String tableAlias = registerAlias(entityDescriptor);
+        String columnAlias;
         for (ColumnDescriptor columnDescriptor : entityDescriptor.getColumnDescriptors()) {
-            queryContext.addColumnContext(new BaseAliasTableColumnContext("", "",
+            columnAlias = tableAlias + "_" + columnDescriptor.getColumnName();
+            queryContext.addColumnContext(new BaseAliasTableColumnContext(columnAlias, tableAlias,
                     entityDescriptor.getTableName(), columnDescriptor.getColumnName(),
                     columnDescriptor.getColumnType()));
         }
+        return tableAlias;
+    }
+
+    private String createEntityDescriptorContext(JoinOperator joinOperator, EntityDescriptor entityDescriptor) {
+        String tableAlias = createQueryColumnsWithEntity(entityDescriptor);
+        TableAliasContext tableAliasContext = new BaseTableAliasContext(tableAlias, entityDescriptor.getTableName());
+        if (joinOperator != null)
+            queryContext.addFromContext(joinOperator, tableAliasContext);
+        else
+            queryContext.addFromContext(tableAliasContext);
+        return tableAlias;
+    }
+
+    private String createEntityDescriptorContext(EntityDescriptor entityDescriptor) {
+        return createEntityDescriptorContext(null, entityDescriptor);
+    }
+
+    private String registerAlias(EntityDescriptor descriptor) {
+        long descriptorsCount = entityDescriptorsByAlias.values().stream().filter(d -> d == descriptor).count();
+        String alias = descriptor.getTableName() + String.valueOf(descriptorsCount);
+        entityDescriptorsByAlias.put(alias, descriptor);
+        return alias;
     }
 
     private DbReadyStatementMetadata writeMetadata() {
@@ -109,10 +141,12 @@ public class EntityBasedQuery<T> {
         return columnsRelatedToFilled;
     }
 
-    private void addSimpleJoinConditions(EntityDescriptor relatedDescriptor, List<ColumnDescriptor> columnsRelatedToFilled) {
+    private void addSimpleJoinConditions(String tableAlias, EntityDescriptor relatedDescriptor,
+                                         List<ColumnDescriptor> columnsRelatedToFilled) {
         ColumnDescriptor columnRelatedToFilled = columnsRelatedToFilled.get(0);
+        columnDescriptorAliasMapping.put(columnRelatedToFilled, tableAlias);
         ConditionContext condition = new BaseConditionContext(ConditionOperator.EQUALS);
-        condition.addFirstExpression(new BaseTableColumnContext("", entityDescriptor.getTableName(),
+        condition.addFirstExpression(new BaseTableColumnContext(firstEntityDescriptorAlias, entityDescriptor.getTableName(),
                 columnRelatedToFilled.getColumnName(), columnRelatedToFilled.getColumnType()));
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
         if (idColumns.size() == 0) {
@@ -124,7 +158,7 @@ public class EntityBasedQuery<T> {
                     "] describes more than one ID column : Not implemented");
         }
         ColumnDescriptor relatedColumn = idColumns.get(0);
-        condition.addCompareExpression(new BaseTableColumnContext("", relatedDescriptor.getTableName(),
+        condition.addCompareExpression(new BaseTableColumnContext(tableAlias, relatedDescriptor.getTableName(),
                 relatedColumn.getColumnName(), relatedColumn.getColumnType()));
         queryContext.getConditionsContext().addConditionContext(ConditionsOperator.AND, condition);
     }
@@ -134,9 +168,8 @@ public class EntityBasedQuery<T> {
         EntityDescriptor relatedDescriptor = findEntityDescriptorWithClass(filledEntityClass);
         List<ColumnDescriptor> columnsRelatedToFilled = safeGetColumnsRelatedToFilled(filledEntityClass);
         // Context creation
-        createQueryColumnsWithEntity(relatedDescriptor);
-        queryContext.addFromContext(JoinOperator.JOIN, new BaseTableAliasContext("", relatedDescriptor.getTableName()));
-        addSimpleJoinConditions(relatedDescriptor, columnsRelatedToFilled);
+        String tableAlias = createEntityDescriptorContext(JoinOperator.JOIN, relatedDescriptor);
+        addSimpleJoinConditions(tableAlias, relatedDescriptor, columnsRelatedToFilled);
         return this;
     }
 
@@ -165,7 +198,8 @@ public class EntityBasedQuery<T> {
         } catch (SQLException ex) {
             throw new QueryException(ex);
         }
-        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(queryContext, entityDescriptor, rs);
+        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(entityDescriptor,
+                entityDescriptorsByAlias, columnDescriptorAliasMapping, rs);
         return objectMaker.make();
     }
 }
