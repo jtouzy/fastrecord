@@ -136,7 +136,7 @@ public class EntityBasedQuery<T> {
     }
 
     private List<ColumnDescriptor> safeGetColumnsRelatedToFilled(Class relatedClass, String propertyName) {
-        List<ColumnDescriptor> columnsRelatedToFilled = entityDescriptor.getColumnDescriptorsWithType(relatedClass);
+        List<ColumnDescriptor> columnsRelatedToFilled = entityDescriptor.getDistinctColumnDescriptorsWithType(relatedClass);
         if (columnsRelatedToFilled.size() == 0) {
             throw new EntityDefinitionException("Entity [" + entityDescriptor.getClazz() +
                     "] does not have relation to [" + relatedClass + "]");
@@ -156,22 +156,25 @@ public class EntityBasedQuery<T> {
     private void addSimpleJoinConditions(String tableAlias, EntityDescriptor relatedDescriptor,
                                          ColumnDescriptor columnRelatedToFilled) {
         columnDescriptorAliasMapping.put(columnRelatedToFilled, tableAlias);
-        ConditionContext condition = new BaseConditionContext(ConditionOperator.EQUALS);
-        condition.addFirstExpression(new BaseTableColumnContext(firstEntityDescriptorAlias, entityDescriptor.getTableName(),
-                columnRelatedToFilled.getColumnName(), columnRelatedToFilled.getColumnType()));
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
-        if (idColumns.size() == 0) {
-            // TODO ce contrôle n'est pas à faire puisque logiquement, on a trouvé l'entité, donc il doit y avoir
-            // TODO au moins 1 ID dans l'entité, EntityValidator fera ce contrôle
+        ColumnDescriptor associatedColumnDescriptor;
+        ConditionContext condition;
+        List<ColumnDescriptor> associatedColumnDescriptors;
+        for (ColumnDescriptor relatedIdColumn : idColumns) {
+            // TODO revision of this case
+            associatedColumnDescriptors = entityDescriptor.getColumnDescriptorsRelatedWith(relatedIdColumn);
+            if (associatedColumnDescriptors.size() > 1) {
+                associatedColumnDescriptor = columnRelatedToFilled;
+            } else {
+                associatedColumnDescriptor = associatedColumnDescriptors.get(0);
+            }
+            condition = new BaseConditionContext(ConditionOperator.EQUALS);
+            condition.addFirstExpression(new BaseTableColumnContext(firstEntityDescriptorAlias, entityDescriptor.getTableName(),
+                    associatedColumnDescriptor.getColumnName(), associatedColumnDescriptor.getColumnType()));
+            condition.addCompareExpression(new BaseTableColumnContext(tableAlias, relatedDescriptor.getTableName(),
+                    relatedIdColumn.getColumnName(), relatedIdColumn.getColumnType()));
+            queryContext.getConditionsContext().addConditionContext(ConditionsOperator.AND, condition);
         }
-        if (idColumns.size() > 1) {
-            throw new EntityDefinitionException("Related entity [" + relatedDescriptor.getClazz() +
-                    "] describes more than one ID column : Not implemented");
-        }
-        ColumnDescriptor relatedColumn = idColumns.get(0);
-        condition.addCompareExpression(new BaseTableColumnContext(tableAlias, relatedDescriptor.getTableName(),
-                relatedColumn.getColumnName(), relatedColumn.getColumnType()));
-        queryContext.getConditionsContext().addConditionContext(ConditionsOperator.AND, condition);
     }
 
     public EntityBasedQuery<T> fill(Class filledEntityClass) {
@@ -181,6 +184,9 @@ public class EntityBasedQuery<T> {
     public EntityBasedQuery<T> fill(Class filledEntityClass, String propertyName) {
         // Safe checks
         EntityDescriptor relatedDescriptor = findEntityDescriptorWithClass(filledEntityClass);
+        // Columns which represents properties to fill
+        // In case of two same type property in one entity (example : two participants in one match)
+        // This columns represents the two participants columns
         List<ColumnDescriptor> columnsRelatedToFilled = safeGetColumnsRelatedToFilled(filledEntityClass, propertyName);
         // Context creation
         String tableAlias;

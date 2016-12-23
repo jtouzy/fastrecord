@@ -34,6 +34,11 @@ public class EntityDescriptor {
         this.columnDescriptorsByColumn.remove(columnDescriptor.getColumnName());
     }
 
+    public List<ColumnDescriptor> getColumnDescriptorsRelatedWith(ColumnDescriptor relatedColumn) {
+        return columnDescriptorsByColumn.values().stream()
+                .filter(r -> relatedColumn.equals(r.getRelatedColumn())).collect(Collectors.toList());
+    }
+
     public List<ColumnDescriptor> getColumnDescriptorsByProperty(String propertyName) {
         return columnDescriptorsByColumn.values().stream()
                 .filter(d -> d.getPropertyName().equals(propertyName)).collect(Collectors.toList());
@@ -43,9 +48,18 @@ public class EntityDescriptor {
         return Optional.ofNullable(columnDescriptorsByColumn.get(columnName));
     }
 
-    public List<ColumnDescriptor> getColumnDescriptorsWithType(Class propertyType) {
+    public List<ColumnDescriptor> getDistinctColumnDescriptorsWithType(Class propertyType) {
+        List<String> properties = new ArrayList<>();
         return columnDescriptorsByColumn.values().stream()
-                .filter(p -> p.getPropertyType() == propertyType).collect(Collectors.toList());
+                .filter(p -> {
+                    if (p.getPropertyType().equals(propertyType)) {
+                        if (!properties.contains(p.getPropertyName())) {
+                            properties.add(p.getPropertyName());
+                            return true;
+                        }
+                    }
+                    return false;
+                }).collect(Collectors.toList());
     }
 
     public List<ColumnDescriptor> getColumnDescriptors() {
