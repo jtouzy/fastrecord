@@ -1,11 +1,8 @@
 package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.statements.context.AliasExpressionContext;
-import com.jtouzy.fastrecord.statements.context.JoinOperator;
 import com.jtouzy.fastrecord.statements.context.QueryContext;
-import com.jtouzy.fastrecord.statements.context.QueryFromContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.utils.Chain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,16 +37,7 @@ public class BaseQueryWriter<T extends QueryContext> extends AbstractWriter<T> {
     }
 
     private void appendFrom() {
-        getSqlString().append(" FROM ");
-        // TODO contextValidation for no from
-        Iterator<Chain.ChainItemWrapper<QueryFromContext,JoinOperator>> itf =
-                getContext().getFromContextChain().iterator();
-        while (itf.hasNext()) {
-            mergeWriter(itf.next().getItem());
-            if (itf.hasNext()) {
-                getSqlString().append(", ");
-            }
-        }
+        mergeWriter(getContext().getJoinListContext());
     }
 
     private void appendWhere() {

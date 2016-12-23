@@ -1,19 +1,21 @@
 package com.jtouzy.fastrecord.statements.context;
 
-import com.jtouzy.fastrecord.utils.Chain;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class BaseQueryContext implements QueryContext {
     private final List<AliasExpressionContext> columnContextList;
-    private final Chain<QueryFromContext,JoinOperator> fromContextChain;
+    private final JoinListContext joinListContext;
     private final ConditionsContext conditionsContext;
 
-    public BaseQueryContext() {
+    public BaseQueryContext(TableAliasContext mainTableContext) {
         this.columnContextList = new ArrayList<>();
-        this.fromContextChain = new Chain<>();
+        this.joinListContext = createJoinListContext(mainTableContext);
         this.conditionsContext = createConditionsContext();
+    }
+
+    protected JoinListContext createJoinListContext(TableAliasContext mainTableContext) {
+        return new BaseJoinListContext(mainTableContext);
     }
 
     protected ConditionsContext createConditionsContext() {
@@ -26,23 +28,13 @@ public class BaseQueryContext implements QueryContext {
     }
 
     @Override
-    public Chain<QueryFromContext,JoinOperator> getFromContextChain() {
-        return fromContextChain;
+    public JoinListContext getJoinListContext() {
+        return joinListContext;
     }
 
     @Override
     public void addColumnContext(AliasExpressionContext expressionContext) {
         this.columnContextList.add(expressionContext);
-    }
-
-    @Override
-    public void addFromContext(QueryFromContext fromContext) {
-        this.fromContextChain.addFirst(fromContext);
-    }
-
-    @Override
-    public void addFromContext(JoinOperator operator, QueryFromContext fromContext) {
-        this.fromContextChain.add(operator, fromContext);
     }
 
     @Override
