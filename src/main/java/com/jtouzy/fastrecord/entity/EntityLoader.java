@@ -202,7 +202,7 @@ public class EntityLoader extends ConfigurationBased {
         List<String> relatedColumns = Arrays.asList(columnsAnnotation.related());
         ColumnDescriptor newColumnDescriptor;
         String associatedColumn;
-        boolean removeColumnDescriptorOrigin = false;
+        boolean removeColumnDescriptorOrigin = true;
         for (ColumnDescriptor relatedEntityIdColumn : relatedEntityIdColumns) {
             if (!relatedColumns.contains(relatedEntityIdColumn.getPropertyName())) {
                 throw new EntityDefinitionException("@Columns annotation malformed in [" + unloadedClass +
@@ -216,7 +216,7 @@ public class EntityLoader extends ConfigurationBased {
                         + "] : Entity column cannot be empty.");
             }
             if (associatedColumn.equals(columnDescriptor.getPropertyName())) {
-                removeColumnDescriptorOrigin = true;
+                removeColumnDescriptorOrigin = false;
             }
             newColumnDescriptor = new ColumnDescriptor(columnDescriptor.getPropertyField(),
                     columnDescriptor.getPropertyGetter(), columnDescriptor.getPropertySetter(),
