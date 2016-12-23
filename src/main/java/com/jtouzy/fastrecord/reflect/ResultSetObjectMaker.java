@@ -1,8 +1,13 @@
 package com.jtouzy.fastrecord.reflect;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import com.jtouzy.fastrecord.config.FastRecordConstants;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
+import com.jtouzy.fastrecord.statements.context.QueryContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
@@ -11,17 +16,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ResultSetObjectMaker<T> {
-    private final EntityDescriptor entityDescriptor;
+    private static final Logger logger = LoggerFactory.getLogger(ResultSetObjectMaker.class);
+    private final QueryContext queryContext;
     private final ResultSet resultSet;
     private final Map<String,EntityDescriptor> entityDescriptorsByAlias;
     private final Map<ColumnDescriptor,String> columnDescriptorAliasMapping;
 
-    public ResultSetObjectMaker(EntityDescriptor entityDescriptor,
-                                Map<String,EntityDescriptor> entityDescriptorsByAlias,
+    public ResultSetObjectMaker(QueryContext queryContext, Map<String,EntityDescriptor> entityDescriptorsByAlias,
                                 Map<ColumnDescriptor,String> columnDescriptorAliasMapping, ResultSet resultSet) {
-        this.entityDescriptor = entityDescriptor;
+        this.queryContext = queryContext;
         this.entityDescriptorsByAlias = entityDescriptorsByAlias;
         this.columnDescriptorAliasMapping = columnDescriptorAliasMapping;
         this.resultSet = resultSet;
@@ -31,68 +37,82 @@ public class ResultSetObjectMaker<T> {
     public List<T> make() {
         List<T> results = new ArrayList<>();
         try {
-            T instance;
             String columnLabel;
-            EntityDescriptor currentDescriptor;
-            ColumnDescriptor descriptor;
-            Object relatedInstance;
-            Map<String,Object> relatedObjects;
-            String tableAlias;
+            Map<String,Object> rowValuesMap;
+
+            logger.debug("Start creating result objects...");
+            String mainTableAlias = queryContext.getJoinListContext().getMainTableContext().getTableAlias();
             while (resultSet.next()) {
-                // New instance of the main object
-                instance = (T)entityDescriptor.getClazz().newInstance();
-                // TODO algorithm revision to handle all the sub-entities
-                // Related objects in the main object
-                // > This map is used to optimize because when a sub-entity is created, the instance is not stored
-                //   except in the parent object property. So, to omit a reflection GET call of the property, we
-                //   store the related objects created with their unique table alias.
-                relatedObjects = new HashMap<>();
-                // Iterate over the columns of the resultSet
+                // Stores all the ResultSet row values in a HashMap to avoid multiple
+                // loops over the resultSet columns during the object creation
+                rowValuesMap = new HashMap<>();
                 for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i ++) {
                     // Access to the column label : tableAlias0$$tableColumn
                     columnLabel = resultSet.getMetaData().getColumnLabel(i);
-                    // Get the current table alias : tableAlias0
-                    tableAlias = columnLabel.substring(0, columnLabel.indexOf(FastRecordConstants.COLUMN_ALIAS_SEPARATOR));
-                    // Get the current EntityDescriptor from the EntityDescriptor array
-                    // > All the EntityDescriptors used in the Query are stored in the entityDescriptorByAlias
-                    currentDescriptor = entityDescriptorsByAlias.get(tableAlias);
-                    // Get the current ColumnDescriptor from the current EntityDescriptor
-                    // TODO optional checking to the descriptor column
-                    descriptor = currentDescriptor.getColumnDescriptorByColumn(
-                            columnLabel.substring(columnLabel.indexOf(
-                                    FastRecordConstants.COLUMN_ALIAS_SEPARATOR)+
-                                    FastRecordConstants.COLUMN_ALIAS_SEPARATOR.length())).get();
-                    // 1 - When the EntityDescriptor is the base-ED (the main from the Query request) and when the
-                    //     Column is a related one (from another object), we creates the instance (because all of
-                    //     the properties of this objects will be fetched in the next columns of the ResultSet)
-                    if (currentDescriptor == entityDescriptor && descriptor.isRelated()) {
-                        // Instantiation of the new related object
-                        relatedInstance = descriptor.getPropertyType().newInstance();
-                        // Invoke the main-object property setter to set the newly created object
-                        descriptor.getPropertySetter().invoke(instance, relatedInstance);
-                        // Store the relatedInstance in the "related cache" to eventually access later
-                        relatedObjects.put(columnDescriptorAliasMapping.get(descriptor), relatedInstance);
-                        // Call the property setter of the relatedColumn in the relatedInstance to set the value
-                        descriptor.getRelatedColumn().getPropertySetter()
-                                .invoke(relatedInstance, resultSet.getObject(columnLabel));
-                    } else {
-                        // 2 - When the EntityDescriptor is not the main object, we need to access the instance object
-                        //     created in (1) to call the property setter.
-                        if (currentDescriptor != entityDescriptor) {
-                            relatedInstance = relatedObjects.get(tableAlias);
-                            descriptor.getPropertySetter().invoke(relatedInstance, resultSet.getObject(columnLabel));
-                        // 3 - When the EntityDescriptor is the main, we just need to call the property setter
-                        } else {
-                            descriptor.getPropertySetter().invoke(instance, resultSet.getObject(columnLabel));
-                        }
-                    }
+                    // Stores the value in the value Map
+                    rowValuesMap.put(columnLabel, resultSet.getObject(columnLabel));
                 }
-                results.add(instance);
+                // Starts the object creation for the main object
+                logger.debug("Start creating result object for row...");
+                results.add((T)createObjectFromResultSetRow(mainTableAlias, rowValuesMap));
             }
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | SQLException ex) {
             // TODO IllegalArgumentException if argument type mismatch + Other exceptions?
             throw new ObjectCreationException(ex);
         }
         return results;
+    }
+
+    private Object createObjectFromResultSetRow(String tableAlias, Map<String,Object> values)
+    throws InvocationTargetException, InstantiationException, IllegalAccessException, SQLException {
+        logger.debug("Start creating object with table alias [{}]", tableAlias);
+        EntityDescriptor entityDescriptor = entityDescriptorsByAlias.get(tableAlias);
+        Object instance = createObjectFromClass(entityDescriptor.getClazz());
+        Map<String,Object> resultSetValuesForEntity = values.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(tableAlias))
+                .collect(Collectors.toMap(
+                        p -> p.getKey().substring(p.getKey().indexOf(FastRecordConstants.COLUMN_ALIAS_SEPARATOR) +
+                                FastRecordConstants.COLUMN_ALIAS_SEPARATOR.length()),
+                        p -> p.getValue()));
+        logger.debug("Values to set on the new object [{}]", resultSetValuesForEntity);
+        ColumnDescriptor columnDescriptor;
+        String relatedAlias;
+        Table<Object,String,Object> instanceCache = HashBasedTable.create();
+        for (Map.Entry<String,Object> valueEntry : resultSetValuesForEntity.entrySet()) {
+            // TODO safe checking of optional columnDescriptor
+            columnDescriptor = entityDescriptor.getColumnDescriptorByColumn(valueEntry.getKey()).get();
+            relatedAlias = columnDescriptorAliasMapping.get(columnDescriptor);
+            invokeSetter(relatedAlias, valueEntry, values, instanceCache, instance, columnDescriptor, valueEntry.getValue());
+        }
+        return instance;
+    }
+
+    private Object createObjectFromClass(Class fromClass)
+    throws InstantiationException, IllegalAccessException {
+        return fromClass.newInstance();
+    }
+
+    private void invokeSetter(String tableAlias, Map.Entry<String,Object> valueEntry, Map<String,Object> values, Table<Object,String,Object> instanceCache, Object instance, ColumnDescriptor columnDescriptor, Object value)
+    throws SQLException, InstantiationException, InvocationTargetException, IllegalAccessException {
+        if (columnDescriptor.isRelated()) {
+            Object relatedInstance;
+            relatedInstance = instanceCache.get(instance, columnDescriptor.getPropertyName());
+            if (relatedInstance == null) {
+                if (tableAlias == null) {
+                    relatedInstance = createObjectFromClass(columnDescriptor.getPropertyType());
+                } else {
+                    relatedInstance = createObjectFromResultSetRow(tableAlias, values);
+                }
+                logger.debug("Invoke setter on [{}] (property [{}]) with value [{}]", instance, columnDescriptor.getPropertyName(), relatedInstance);
+                columnDescriptor.getPropertySetter().invoke(instance, relatedInstance);
+                invokeSetter(tableAlias, valueEntry, values, instanceCache, relatedInstance, columnDescriptor.getRelatedColumn(), valueEntry.getValue());
+                instanceCache.put(instance, columnDescriptor.getPropertyName(), relatedInstance);
+            } else {
+                invokeSetter(tableAlias, valueEntry, values, instanceCache, relatedInstance, columnDescriptor.getRelatedColumn(), valueEntry.getValue());
+            }
+        } else {
+            logger.debug("Invoke setter on [{}] (property [{}]) with value [{}]", instance, columnDescriptor.getPropertyName(), value);
+            columnDescriptor.getPropertySetter().invoke(instance, value);
+        }
     }
 }

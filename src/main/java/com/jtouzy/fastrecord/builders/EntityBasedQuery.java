@@ -217,8 +217,8 @@ public class EntityBasedQuery<T> {
         } catch (SQLException ex) {
             throw new QueryException(ex);
         }
-        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(entityDescriptor,
-                entityDescriptorsByAlias, columnDescriptorAliasMapping, rs);
+        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(queryContext, entityDescriptorsByAlias,
+                columnDescriptorAliasMapping, rs);
         return objectMaker.make();
     }
 }
