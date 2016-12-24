@@ -227,4 +227,11 @@ public class EntityBasedQuery<T> {
                 columnDescriptorAliasMapping, rs);
         return objectMaker.make();
     }
+
+    public Optional<T> findFirst() {
+        List<T> results = findAll();
+        if (results.size() == 0)
+            return Optional.empty();
+        return Optional.of(results.get(0));
+    }
 }
