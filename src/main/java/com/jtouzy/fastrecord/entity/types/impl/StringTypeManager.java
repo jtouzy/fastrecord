@@ -1,6 +1,7 @@
-package com.jtouzy.fastrecord.entity.types;
+package com.jtouzy.fastrecord.entity.types.impl;
 
 import com.jtouzy.fastrecord.annotations.support.Converts;
+import com.jtouzy.fastrecord.entity.types.TypeManager;
 
 import java.sql.Types;
 

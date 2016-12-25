@@ -15,7 +15,7 @@ import java.util.Set;
 @Service
 public class TypeManagerPool {
     private static final Logger logger = LoggerFactory.getLogger(TypeManagerPool.class);
-    private static final String DEFAULT_TYPE_MANAGERS_CLASS_PACKAGE = "com.jtouzy.fastrecord.entity.types";
+    private static final String DEFAULT_TYPE_MANAGERS_CLASS_PACKAGE = "com.jtouzy.fastrecord.entity.types.impl";
 
     private Map<Class,TypeManager> defaultTypeManagers = new LinkedHashMap<>();
     private Map<Class,TypeManager> typeManagers = new LinkedHashMap<>();
