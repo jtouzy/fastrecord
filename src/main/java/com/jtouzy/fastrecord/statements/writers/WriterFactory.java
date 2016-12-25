@@ -52,7 +52,7 @@ public class WriterFactory extends ConfigurationBased {
         for (Class<?> writerClass : writerClasses) {
             Class contextClass = (writerClass.getAnnotation(Writes.class)).value();
             if (Writer.class.isAssignableFrom(writerClass)) {
-                defaultWriters.put(contextClass, (Class<? extends Writer>)writerClass);
+                collection.put(contextClass, (Class<? extends Writer>)writerClass);
             } else {
                 throw new WriterDefinitionException("@Writes annotated class " + contextClass
                         + " must implement Writer interface");
