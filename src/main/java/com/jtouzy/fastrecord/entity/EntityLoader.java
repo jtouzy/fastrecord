@@ -195,17 +195,24 @@ public class EntityLoader extends ConfigurationBased {
             // Get all the empty dependencies in the full list
             emptyDependenciesClasses = classDependencies.keySet().stream()
                     .filter(k -> classDependencies.get(k).isEmpty()).collect(Collectors.toList());
-            // Add all this classes to the final list
-            unloadedClasses.addAll(emptyDependenciesClasses);
-            // Iterate over all this classes
-            for (Class emptyDependenciesClass : emptyDependenciesClasses) {
-                // Remove the class from the full list
-                classDependencies.remove(emptyDependenciesClass);
-                // Remove all of the reference of this class in all dependencies
-                for (Class dependantClass : classDependencies.keySet()) {
-                    dependencies = classDependencies.get(dependantClass);
-                    if (dependencies.contains(emptyDependenciesClass)) {
-                        dependencies.remove(emptyDependenciesClass);
+            // If no dependencies are empty, this may trigger an infinite loop, so we break the loop
+            // and add all the last dependencies (in case for example of referencing the entity in his self)
+            if (emptyDependenciesClasses.size() == 0) {
+                unloadedClasses.addAll(classDependencies.keySet());
+                classDependencies.clear();
+            } else {
+                // Add all this classes to the final list
+                unloadedClasses.addAll(emptyDependenciesClasses);
+                // Iterate over all this classes
+                for (Class emptyDependenciesClass : emptyDependenciesClasses) {
+                    // Remove the class from the full list
+                    classDependencies.remove(emptyDependenciesClass);
+                    // Remove all of the reference of this class in all dependencies
+                    for (Class dependantClass : classDependencies.keySet()) {
+                        dependencies = classDependencies.get(dependantClass);
+                        if (dependencies.contains(emptyDependenciesClass)) {
+                            dependencies.remove(emptyDependenciesClass);
+                        }
                     }
                 }
             }
