@@ -24,13 +24,15 @@ public class ConditionsConfigurer<T> {
 
     @SuppressWarnings("unchecked")
     private void checkValueType(ColumnDescriptor descriptor, Object value) {
+        ColumnDescriptor currentDescriptor = descriptor;
         Class propertyType = descriptor.getPropertyType();
-        if (descriptor.isRelated()) {
-            propertyType = descriptor.getRelatedColumn().getPropertyType();
+        while (currentDescriptor.isRelated()) {
+            currentDescriptor = currentDescriptor.getRelatedColumn();
+            propertyType = currentDescriptor.getPropertyType();
         }
         if (!propertyType.isAssignableFrom(value.getClass())) {
-            throw new IllegalArgumentException("The condition value of column [" + descriptor.getPropertyName() +
-                    "] must be type of [" + propertyType + "]");
+            throw new IllegalArgumentException("The condition value of column [" + descriptor.getColumnName() +
+                    " (property: " + descriptor.getPropertyName() + ")] must be type of [" + propertyType + "]");
         }
     }
 
