@@ -19,6 +19,6 @@ public class StringTypeManager implements TypeManager<String> {
 
     @Override
     public String convertToObject(Object objectFromDatabase) {
-        return objectFromDatabase.toString();
+        return objectFromDatabase == null ? null : objectFromDatabase.toString();
     }
 }

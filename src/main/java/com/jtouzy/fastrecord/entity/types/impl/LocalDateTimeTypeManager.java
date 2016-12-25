@@ -18,11 +18,11 @@ public class LocalDateTimeTypeManager implements TypeManager<LocalDateTime> {
 
     @Override
     public String convertToDatabase(LocalDateTime objectFromType) {
-        return formatter.format(objectFromType);
+        return objectFromType == null ? null : formatter.format(objectFromType);
     }
 
     @Override
     public LocalDateTime convertToObject(Object objectFromDatabase) {
-        return LocalDateTime.parse(String.valueOf(objectFromDatabase), formatter);
+        return objectFromDatabase == null ? null : LocalDateTime.parse(String.valueOf(objectFromDatabase), formatter);
     }
 }

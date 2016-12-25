@@ -14,11 +14,11 @@ public class IntegerTypeManager implements TypeManager<Integer> {
 
     @Override
     public String convertToDatabase(Integer objectFromType) {
-        return String.valueOf(objectFromType);
+        return objectFromType == null ? null : String.valueOf(objectFromType);
     }
 
     @Override
     public Integer convertToObject(Object objectFromDatabase) {
-        return Integer.parseInt(String.valueOf(objectFromDatabase));
+        return objectFromDatabase == null ? null : Integer.parseInt(String.valueOf(objectFromDatabase));
     }
 }
