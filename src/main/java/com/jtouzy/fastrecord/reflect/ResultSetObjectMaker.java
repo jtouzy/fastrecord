@@ -14,9 +14,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ResultSetObjectMaker<T> {
     private static final Logger logger = LoggerFactory.getLogger(ResultSetObjectMaker.class);
@@ -68,12 +68,13 @@ public class ResultSetObjectMaker<T> {
         logger.debug("Start creating object with table alias [{}]", tableAlias);
         EntityDescriptor entityDescriptor = entityDescriptorsByAlias.get(tableAlias);
         Object instance = createObjectFromClass(entityDescriptor.getClazz());
-        Map<String,Object> resultSetValuesForEntity = values.entrySet().stream()
-                .filter(e -> e.getKey().startsWith(tableAlias))
-                .collect(Collectors.toMap(
-                        p -> p.getKey().substring(p.getKey().indexOf(FastRecordConstants.COLUMN_ALIAS_SEPARATOR) +
-                                FastRecordConstants.COLUMN_ALIAS_SEPARATOR.length()),
-                        p -> p.getValue()));
+        Map<String,Object> resultSetValuesForEntity = new LinkedHashMap<>();
+        values.entrySet().stream().filter(e -> e.getKey().startsWith(tableAlias)).forEach(e ->
+            resultSetValuesForEntity.put(
+                    e.getKey().substring(e.getKey().indexOf(FastRecordConstants.COLUMN_ALIAS_SEPARATOR) +
+                            FastRecordConstants.COLUMN_ALIAS_SEPARATOR.length()),
+                    e.getValue())
+        );
         logger.debug("Values to set on the new object [{}]", resultSetValuesForEntity);
         ColumnDescriptor columnDescriptor;
         String relatedAlias;
