@@ -112,7 +112,7 @@ public class ResultSetObjectMaker<T> {
             }
         } else {
             logger.debug("Invoke setter on [{}] (property [{}]) with value [{}]", instance, columnDescriptor.getPropertyName(), value);
-            columnDescriptor.getPropertySetter().invoke(instance, value);
+            columnDescriptor.getPropertySetter().invoke(instance, columnDescriptor.getTypeManager().convertToObject(value));
         }
     }
 }

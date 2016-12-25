@@ -1,5 +1,7 @@
 package com.jtouzy.fastrecord.entity;
 
+import com.jtouzy.fastrecord.entity.types.TypeManager;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -9,16 +11,16 @@ public class ColumnDescriptor {
     private final Method propertySetter;
     private final String columnName;
     private final boolean id;
-    private int columnType;
+    private TypeManager typeManager;
     private ColumnDescriptor relatedColumn;
 
-    public ColumnDescriptor(Field propertyField, Method propertyGetter, Method propertySetter,
-                            String columnName, int columnType, boolean id) {
+    public ColumnDescriptor(Field propertyField, TypeManager typeManager, Method propertyGetter, Method propertySetter,
+                            String columnName, boolean id) {
         this.propertyField = propertyField;
+        this.typeManager = typeManager;
         this.propertyGetter = propertyGetter;
         this.propertySetter = propertySetter;
         this.columnName = columnName;
-        this.columnType = columnType;
         this.id = id;
     }
 
@@ -46,12 +48,16 @@ public class ColumnDescriptor {
         return propertyField;
     }
 
-    public int getColumnType() {
-        return columnType;
+    public TypeManager getTypeManager() {
+        return typeManager;
     }
 
-    public void setColumnType(int columnType) {
-        this.columnType = columnType;
+    public void setTypeManager(TypeManager typeManager) {
+        this.typeManager = typeManager;
+    }
+
+    public int getColumnType() {
+        return typeManager.getSqlType();
     }
 
     public boolean isId() {
@@ -79,7 +85,7 @@ public class ColumnDescriptor {
         sb.append(", propertyGetter=").append(propertyGetter);
         sb.append(", propertySetter=").append(propertySetter);
         sb.append(", columnName='").append(columnName).append('\'');
-        sb.append(", columnType=").append(columnType);
+        sb.append(", typeManager=").append(typeManager);
         sb.append(", id=").append(id);
         sb.append(']');
         return sb.toString();

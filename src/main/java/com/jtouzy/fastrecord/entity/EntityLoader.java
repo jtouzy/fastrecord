@@ -6,8 +6,10 @@ import com.jtouzy.fastrecord.annotations.Column;
 import com.jtouzy.fastrecord.annotations.Columns;
 import com.jtouzy.fastrecord.annotations.Entity;
 import com.jtouzy.fastrecord.annotations.Id;
-import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.config.ConfigurationBased;
+import com.jtouzy.fastrecord.config.FastRecordConfiguration;
+import com.jtouzy.fastrecord.entity.types.TypeManager;
+import com.jtouzy.fastrecord.entity.types.TypeManagerPool;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,12 +22,17 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Singleton EntityLoader Bean
@@ -39,6 +46,9 @@ public class EntityLoader extends ConfigurationBased {
 
     private final LinkedHashMap<Class,EntityDescriptor> entityDescriptorsByClass;
     private final Multimap<Class,ColumnDescriptor> laterLoading = ArrayListMultimap.create();
+
+    @Autowired
+    private TypeManagerPool typeManagerPool;
 
     @Autowired
     public EntityLoader(FastRecordConfiguration configuration) {
@@ -82,9 +92,9 @@ public class EntityLoader extends ConfigurationBased {
             BeanInfo info = Introspector.getBeanInfo(descriptor.getClazz());
             Field field;
             Method getter, setter;
-            int columnType;
             ColumnDescriptor columnDescriptor;
-            boolean isId;
+            Optional<TypeManager> typeManagerOptional;
+            TypeManager typeManager;
             for (PropertyDescriptor propertyDescriptor : info.getPropertyDescriptors()) {
                 if (propertyDescriptor.getName().equals("class")) {
                     continue;
@@ -93,11 +103,15 @@ public class EntityLoader extends ConfigurationBased {
                 setter = propertyDescriptor.getWriteMethod();
                 field = descriptor.getClazz().getDeclaredField(propertyDescriptor.getName());
                 if (setter != null && getter != null) {
-                    columnType = analyzeBasicColumnType(field);
-                    columnDescriptor = new ColumnDescriptor(field, getter, setter, analyzeColumnName(field),
-                            columnType, analyzeId(field));
+                    typeManager = null;
+                    typeManagerOptional = typeManagerPool.getTypeManager(field.getType());
+                    if (typeManagerOptional.isPresent()) {
+                        typeManager = typeManagerOptional.get();
+                    }
+                    columnDescriptor = new ColumnDescriptor(field, typeManager, getter, setter,
+                            analyzeColumnName(field), analyzeId(field));
                     descriptor.addColumnDescriptor(columnDescriptor);
-                    if (columnType == -1) {
+                    if (typeManager == null) {
                         laterLoading.put(descriptor.getClazz(), columnDescriptor);
                     }
                 }
@@ -119,41 +133,21 @@ public class EntityLoader extends ConfigurationBased {
         return columnName;
     }
 
-    private int analyzeBasicColumnType(Field field) {
-        Column annotation = field.getAnnotation(Column.class);
-        int type = -1;
-        if (annotation != null) {
-            type = annotation.type();
-        }
-        if (type == -1) {
-            type = getSqlTypeWithJavaType(field.getType());
-            /*if (type == -1) {
-
-            }*/
-        }
-        return type;
-    }
-
     private boolean analyzeId(Field field) {
         return field.getAnnotation(Id.class) != null;
     }
 
-    private int getSqlTypeWithJavaType(Class javaType) {
-        if (javaType.equals(String.class)) {
-            return Types.VARCHAR;
-        } else if (javaType.equals(Integer.class)) {
-            return Types.INTEGER;
-        }
-        return -1;
-    }
-
     private void loadLateEntities() {
         logger.debug("Late loading entities...");
+        logger.debug("Sorting entities...");
+        List<Class> unloadedClasses = sortUnloadedClasses();
+        logger.debug("Start loading late entities...");
         EntityDescriptor entityDescriptor, relatedEntityDescriptor;
         List<ColumnDescriptor> idColumns;
         ColumnDescriptor idColumn;
-        for (Class unloadedClass : laterLoading.keySet()) {
-            Collection<ColumnDescriptor> unloadedColumns = laterLoading.get(unloadedClass);
+        Collection<ColumnDescriptor> unloadedColumns;
+        for (Class unloadedClass : unloadedClasses) {
+            unloadedColumns = laterLoading.get(unloadedClass);
             entityDescriptor = entityDescriptorsByClass.get(unloadedClass);
             for (ColumnDescriptor columnDescriptor : unloadedColumns) {
                 relatedEntityDescriptor = entityDescriptorsByClass.get(columnDescriptor.getPropertyType());
@@ -173,11 +167,50 @@ public class EntityLoader extends ConfigurationBased {
                     logger.debug("Related entity column [{}.{}] registers SQL type [{}] from [{}] in [{}]",
                             unloadedClass, columnDescriptor.getColumnName(), idColumn.getColumnType(), idColumn.getColumnName(),
                             relatedEntityDescriptor.getClazz());
-                    columnDescriptor.setColumnType(idColumn.getColumnType());
+                    columnDescriptor.setTypeManager(idColumn.getTypeManager());
                     columnDescriptor.setRelatedColumn(idColumn);
                 }
             }
         }
+    }
+
+    private List<Class> sortUnloadedClasses() {
+        // Load all class dependencies in a Map
+        Map<Class,Set<Class>> classDependencies = new HashMap<>();
+        Class insideClass;
+        Set<Class> dependencies;
+        for (Class unloadedClass : laterLoading.keySet()) {
+            classDependencies.putIfAbsent(unloadedClass, new HashSet<>());
+            dependencies = classDependencies.get(unloadedClass);
+            for (ColumnDescriptor columnDescriptor : laterLoading.get(unloadedClass)) {
+                insideClass = columnDescriptor.getPropertyType();
+                classDependencies.putIfAbsent(insideClass, new HashSet<>());
+                dependencies.add(insideClass);
+            }
+        }
+        // Iterate over those dependencies to sort priority
+        List<Class> unloadedClasses = new ArrayList<>();
+        List<Class> emptyDependenciesClasses;
+        while (!classDependencies.isEmpty()) {
+            // Get all the empty dependencies in the full list
+            emptyDependenciesClasses = classDependencies.keySet().stream()
+                    .filter(k -> classDependencies.get(k).isEmpty()).collect(Collectors.toList());
+            // Add all this classes to the final list
+            unloadedClasses.addAll(emptyDependenciesClasses);
+            // Iterate over all this classes
+            for (Class emptyDependenciesClass : emptyDependenciesClasses) {
+                // Remove the class from the full list
+                classDependencies.remove(emptyDependenciesClass);
+                // Remove all of the reference of this class in all dependencies
+                for (Class dependantClass : classDependencies.keySet()) {
+                    dependencies = classDependencies.get(dependantClass);
+                    if (dependencies.contains(emptyDependenciesClass)) {
+                        dependencies.remove(emptyDependenciesClass);
+                    }
+                }
+            }
+        }
+        return unloadedClasses;
     }
 
     private void createMultipleIdEntity(Class unloadedClass, EntityDescriptor entityDescriptor,
@@ -219,8 +252,9 @@ public class EntityLoader extends ConfigurationBased {
                 removeColumnDescriptorOrigin = false;
             }
             newColumnDescriptor = new ColumnDescriptor(columnDescriptor.getPropertyField(),
+                    relatedEntityIdColumn.getTypeManager(),
                     columnDescriptor.getPropertyGetter(), columnDescriptor.getPropertySetter(),
-                    associatedColumn, relatedEntityIdColumn.getColumnType(), columnDescriptor.isId());
+                    associatedColumn, columnDescriptor.isId());
             newColumnDescriptor.setRelatedColumn(relatedEntityIdColumn);
             entityDescriptor.addColumnDescriptor(newColumnDescriptor);
         }

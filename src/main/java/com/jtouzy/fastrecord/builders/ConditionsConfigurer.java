@@ -22,6 +22,7 @@ public class ConditionsConfigurer<T> {
         queryBuilder.queryContext.getConditionsContext().addConditionContext(operator, conditionContext);
     }
 
+    @SuppressWarnings("unchecked")
     private ConditionsConfigurer<T> createSimpleCondition(ConditionsOperator conditionsOperator, String columnName,
                                                           ConditionOperator operator, String value) {
         Optional<ColumnDescriptor> columnDescriptorOptional =
@@ -34,7 +35,8 @@ public class ConditionsConfigurer<T> {
         conditionContext.addFirstExpression(new BaseTableColumnContext(queryBuilder.firstEntityDescriptorAlias,
                 queryBuilder.entityDescriptor.getTableName(), columnDescriptor.getColumnName(),
                 columnDescriptor.getColumnType()));
-        conditionContext.addCompareExpression(new BaseConstantContext(value, columnDescriptor.getColumnType()));
+        conditionContext.addCompareExpression(new BaseConstantContext(
+                columnDescriptor.getTypeManager().convertToDatabase(value), columnDescriptor.getColumnType()));
         addCondition(conditionsOperator, conditionContext);
         return this;
     }
