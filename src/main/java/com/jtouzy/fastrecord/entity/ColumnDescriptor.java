@@ -78,7 +78,8 @@ public class ColumnDescriptor {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder(super.toString());
+        final StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+        sb.append("@").append(Integer.toHexString(hashCode()));
         sb.append('[');
         sb.append("propertyName='").append(propertyField.getName()).append('\'');
         sb.append(", propertyType=").append(propertyField.getType());

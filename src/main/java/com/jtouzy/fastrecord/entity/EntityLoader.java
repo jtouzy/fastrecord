@@ -59,6 +59,9 @@ public class EntityLoader extends ConfigurationBased {
     public LinkedHashMap<Class,EntityDescriptor> load() {
         logger.debug("EntityLoader starts loading entities...");
         this.readEntities();
+        if (logger.isDebugEnabled()) {
+            this.printAllEntities();
+        }
         return entityDescriptorsByClass;
     }
 
@@ -267,6 +270,15 @@ public class EntityLoader extends ConfigurationBased {
         }
         if (removeColumnDescriptorOrigin) {
             entityDescriptor.removeColumnDescriptor(columnDescriptor);
+        }
+    }
+
+    private void printAllEntities() {
+        for (EntityDescriptor descriptor : entityDescriptorsByClass.values()) {
+            System.out.println(" > " + descriptor);
+            for (ColumnDescriptor columnDescriptor : descriptor.getColumnDescriptors()) {
+                System.out.println("   > " + columnDescriptor);
+            }
         }
     }
 }

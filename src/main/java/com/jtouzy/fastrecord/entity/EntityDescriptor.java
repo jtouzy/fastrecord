@@ -73,7 +73,8 @@ public class EntityDescriptor {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder(super.toString());
+        final StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+        sb.append("@").append(Integer.toHexString(hashCode()));
         sb.append('[');
         sb.append("clazz=").append(clazz);
         sb.append(", tableName='").append(tableName).append('\'');
