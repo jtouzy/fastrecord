@@ -27,6 +27,8 @@ public class FastRecordBeanConfig {
     public FastRecordConfiguration configuration(Environment environment) {
         FastRecordConfiguration configuration = new FastRecordConfiguration();
         configuration.setEntitiesClassPackage(environment.getRequiredProperty(ENTITIES_CLASS_PACKAGE));
+        configuration.setWritersClassPackage(environment.getProperty(WRITERS_CLASS_PACKAGE));
+        configuration.setTypeManagersClassPackage(environment.getProperty(TYPE_MANAGERS_CLASS_PACKAGE));
         return configuration;
     }
 }

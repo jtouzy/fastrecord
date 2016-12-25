@@ -2,9 +2,12 @@ package com.jtouzy.fastrecord.entity.types;
 
 import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Converts;
+import com.jtouzy.fastrecord.config.ConfigurationBased;
+import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedHashMap;
@@ -13,19 +16,22 @@ import java.util.Optional;
 import java.util.Set;
 
 @Service
-public class TypeManagerPool {
+public class TypeManagerPool extends ConfigurationBased {
     private static final Logger logger = LoggerFactory.getLogger(TypeManagerPool.class);
     private static final String DEFAULT_TYPE_MANAGERS_CLASS_PACKAGE = "com.jtouzy.fastrecord.entity.types.impl";
 
     private Map<Class,TypeManager> defaultTypeManagers = new LinkedHashMap<>();
     private Map<Class,TypeManager> typeManagers = new LinkedHashMap<>();
 
-    private TypeManagerPool() {
+    @Autowired
+    private TypeManagerPool(FastRecordConfiguration configuration) {
+        super(configuration);
         this.initializeTypeManagers();
     }
 
     private void initializeTypeManagers() {
         putInCollection(DEFAULT_TYPE_MANAGERS_CLASS_PACKAGE, defaultTypeManagers);
+        putInCollection(getConfiguration().getTypeManagersClassPackage(), typeManagers);
     }
 
     @SuppressWarnings("unchecked")
@@ -55,6 +61,6 @@ public class TypeManagerPool {
     }
 
     public Optional<TypeManager> getTypeManager(Class type) {
-        return Optional.ofNullable(defaultTypeManagers.getOrDefault(type, typeManagers.get(type)));
+        return Optional.ofNullable(typeManagers.getOrDefault(type, defaultTypeManagers.get(type)));
     }
 }
