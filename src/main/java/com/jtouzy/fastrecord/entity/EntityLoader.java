@@ -244,18 +244,18 @@ public class EntityLoader extends ConfigurationBased {
         String associatedColumn;
         boolean removeColumnDescriptorOrigin = true;
         for (ColumnDescriptor relatedEntityIdColumn : relatedEntityIdColumns) {
-            if (!relatedColumns.contains(relatedEntityIdColumn.getPropertyName())) {
+            if (!relatedColumns.contains(relatedEntityIdColumn.getColumnName())) {
                 throw new EntityDefinitionException("@Columns annotation malformed in [" + unloadedClass +
                         "] : Id column [" + relatedEntityIdColumn.getPropertyName() +
                         "] is not referenced in the related() annotation property");
             }
             associatedColumn = columnsAnnotation.columns()
-                    [relatedColumns.indexOf(relatedEntityIdColumn.getPropertyName())];
+                    [relatedColumns.indexOf(relatedEntityIdColumn.getColumnName())];
             if (associatedColumn.isEmpty()) {
                 throw new EntityDefinitionException("@Columns annotation malformed in [" + unloadedClass
                         + "] : Entity column cannot be empty.");
             }
-            if (associatedColumn.equals(columnDescriptor.getPropertyName())) {
+            if (associatedColumn.equals(columnDescriptor.getColumnName())) {
                 removeColumnDescriptorOrigin = false;
             }
             newColumnDescriptor = new ColumnDescriptor(columnDescriptor.getPropertyField(),
