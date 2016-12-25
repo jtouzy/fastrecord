@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 
 @Converts(LocalDateTime.class)
 public class LocalDateTimeTypeManager implements TypeManager<LocalDateTime> {
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 
     @Override
     public int getSqlType() {
