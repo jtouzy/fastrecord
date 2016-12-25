@@ -7,7 +7,7 @@ import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import java.util.Iterator;
 import java.util.Optional;
 
-public class BaseMultipleIdRepository<T> extends BaseRepository<T> implements MultipleIdRepository<T> {
+public abstract class BaseMultipleIdRepository<T> extends BaseRepository<T> implements MultipleIdRepository<T> {
     public BaseMultipleIdRepository(Class<T> entityClass) {
         super(entityClass);
     }
