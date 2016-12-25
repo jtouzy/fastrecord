@@ -19,7 +19,7 @@ public abstract class BaseMultipleIdRepository<T> extends BaseRepository<T> impl
         ColumnDescriptor columnDescriptor;
         for (Iterator<ColumnDescriptor> it = entityDescriptor.getIdColumnDescriptors().iterator(); it.hasNext(); ++ index) {
             columnDescriptor = it.next();
-            query.conditions().eq(columnDescriptor.getColumnName(), String.valueOf(ids[index]));
+            query.conditions().eq(columnDescriptor.getColumnName(), ids[index]);
         }
         return query.findFirst();
     }

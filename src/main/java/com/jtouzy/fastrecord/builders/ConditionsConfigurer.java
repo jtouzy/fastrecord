@@ -30,7 +30,7 @@ public class ConditionsConfigurer<T> {
         }
         if (!propertyType.isAssignableFrom(value.getClass())) {
             throw new IllegalArgumentException("The condition value of column [" + descriptor.getPropertyName() +
-                    "] must be type of [" + descriptor.getPropertyType() + "]");
+                    "] must be type of [" + propertyType + "]");
         }
     }
 
