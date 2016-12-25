@@ -23,14 +23,27 @@ public class ConditionsConfigurer<T> {
     }
 
     @SuppressWarnings("unchecked")
+    private void checkValueType(ColumnDescriptor descriptor, Object value) {
+        Class propertyType = descriptor.getPropertyType();
+        if (descriptor.isRelated()) {
+            propertyType = descriptor.getRelatedColumn().getPropertyType();
+        }
+        if (!propertyType.isAssignableFrom(value.getClass())) {
+            throw new IllegalArgumentException("The condition value of column [" + descriptor.getPropertyName() +
+                    "] must be type of [" + descriptor.getPropertyType() + "]");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     private ConditionsConfigurer<T> createSimpleCondition(ConditionsOperator conditionsOperator, String columnName,
-                                                          ConditionOperator operator, String value) {
+                                                          ConditionOperator operator, Object value) {
         Optional<ColumnDescriptor> columnDescriptorOptional =
                 queryBuilder.entityDescriptor.getColumnDescriptorByColumn(columnName);
         if (!columnDescriptorOptional.isPresent()) {
             throw new ColumnNotFoundException(columnName, queryBuilder.entityDescriptor.getClazz());
         }
         ColumnDescriptor columnDescriptor = columnDescriptorOptional.get();
+        checkValueType(columnDescriptor, value);
         ConditionContext conditionContext = new BaseConditionContext(operator);
         conditionContext.addFirstExpression(new BaseTableColumnContext(queryBuilder.firstEntityDescriptorAlias,
                 queryBuilder.entityDescriptor.getTableName(), columnDescriptor.getColumnName(),
@@ -41,40 +54,40 @@ public class ConditionsConfigurer<T> {
         return this;
     }
 
-    public ConditionsConfigurer<T> eq(String columnName, String value) {
+    public ConditionsConfigurer<T> eq(String columnName, Object value) {
         return andEq(columnName, value);
     }
-    public ConditionsConfigurer<T> notEq(String columnName, String value) {
+    public ConditionsConfigurer<T> notEq(String columnName, Object value) {
         return andNotEq(columnName, value);
     }
-    public ConditionsConfigurer<T> like(String columnName, String value) {
+    public ConditionsConfigurer<T> like(String columnName, Object value) {
         return andLike(columnName, value);
     }
-    public ConditionsConfigurer<T> notLike(String columnName, String value) {
+    public ConditionsConfigurer<T> notLike(String columnName, Object value) {
         return andNotLike(columnName, value);
     }
-    public ConditionsConfigurer<T> andEq(String columnName, String value) {
+    public ConditionsConfigurer<T> andEq(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.EQUALS, value);
     }
-    public ConditionsConfigurer<T> andNotEq(String columnName, String value) {
+    public ConditionsConfigurer<T> andNotEq(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.NOT_EQUALS, value);
     }
-    public ConditionsConfigurer<T> andLike(String columnName, String value) {
+    public ConditionsConfigurer<T> andLike(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.LIKE, value);
     }
-    public ConditionsConfigurer<T> andNotLike(String columnName, String value) {
+    public ConditionsConfigurer<T> andNotLike(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.NOT_LIKE, value);
     }
-    public ConditionsConfigurer<T> orEq(String columnName, String value) {
+    public ConditionsConfigurer<T> orEq(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.EQUALS, value);
     }
-    public ConditionsConfigurer<T> orNotEq(String columnName, String value) {
+    public ConditionsConfigurer<T> orNotEq(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.NOT_EQUALS, value);
     }
-    public ConditionsConfigurer<T> orLike(String columnName, String value) {
+    public ConditionsConfigurer<T> orLike(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.LIKE, value);
     }
-    public ConditionsConfigurer<T> orNotLike(String columnName, String value) {
+    public ConditionsConfigurer<T> orNotLike(String columnName, Object value) {
         return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.NOT_LIKE, value);
     }
 
