@@ -1,5 +1,7 @@
 package com.jtouzy.fastrecord.builders;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 import com.jtouzy.fastrecord.config.FastRecordConstants;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDefinitionException;
@@ -59,7 +61,7 @@ public class EntityBasedQuery<T> {
     QueryContext queryContext;
     private ConditionsConfigurer<T> conditionsConfigurer;
     private Map<String,EntityDescriptor> entityDescriptorsByAlias;
-    private Map<ColumnDescriptor,String> columnDescriptorAliasMapping;
+    private Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping;
 
     private EntityBasedQuery() {
     }
@@ -85,7 +87,7 @@ public class EntityBasedQuery<T> {
     private void initializeContext() {
         this.conditionsConfigurer = new ConditionsConfigurer<>(this);
         this.entityDescriptorsByAlias = new HashMap<>();
-        this.columnDescriptorAliasMapping = new HashMap<>();
+        this.columnDescriptorAliasMapping = HashBasedTable.create();
         createQueryContextWithEntity();
     }
 
@@ -155,15 +157,20 @@ public class EntityBasedQuery<T> {
 
     private void addSimpleJoinConditions(String tableAlias, EntityDescriptor relatedDescriptor,
                                          ColumnDescriptor columnRelatedToFilled) {
-        columnDescriptorAliasMapping.put(columnRelatedToFilled, tableAlias);
+        columnDescriptorAliasMapping.put(firstEntityDescriptorAlias, columnRelatedToFilled, tableAlias);
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
         ColumnDescriptor associatedColumnDescriptor;
         ConditionContext condition;
         List<ColumnDescriptor> associatedColumnDescriptors;
         for (ColumnDescriptor relatedIdColumn : idColumns) {
-            // TODO revision of this case
+            // TODO revision of this case (add doc)
             associatedColumnDescriptors = entityDescriptor.getColumnDescriptorsRelatedWith(relatedIdColumn);
-            if (associatedColumnDescriptors.size() > 1) {
+            if (associatedColumnDescriptors.size() == 0) {
+                // In the case of an Entity is related to himself, they may don't have all the related columns
+                // registered because the ID could be associated to another column.
+                // So by default we take the same column (table is the same, but different alias)
+                associatedColumnDescriptor = relatedIdColumn;
+            } else if (associatedColumnDescriptors.size() > 1) {
                 associatedColumnDescriptor = columnRelatedToFilled;
             } else {
                 associatedColumnDescriptor = associatedColumnDescriptors.get(0);

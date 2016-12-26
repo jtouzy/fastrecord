@@ -150,7 +150,7 @@ public class EntityLoader extends ConfigurationBased {
         ColumnDescriptor idColumn;
         Collection<ColumnDescriptor> unloadedColumns;
         for (Class unloadedClass : unloadedClasses) {
-            unloadedColumns = laterLoading.get(unloadedClass);
+            unloadedColumns = sortUnloadedColumns(laterLoading.get(unloadedClass));
             entityDescriptor = entityDescriptorsByClass.get(unloadedClass);
             for (ColumnDescriptor columnDescriptor : unloadedColumns) {
                 relatedEntityDescriptor = entityDescriptorsByClass.get(columnDescriptor.getPropertyType());
@@ -221,6 +221,20 @@ public class EntityLoader extends ConfigurationBased {
             }
         }
         return unloadedClasses;
+    }
+
+    private Collection<ColumnDescriptor> sortUnloadedColumns(Collection<ColumnDescriptor> unloadedColumns) {
+        Collection<ColumnDescriptor> sortedColumns;
+        List<ColumnDescriptor> idColumns = unloadedColumns.stream()
+                .filter(ColumnDescriptor::isId).collect(Collectors.toList());
+        if (idColumns.size() != 0) {
+            sortedColumns = new ArrayList<>();
+            sortedColumns.addAll(idColumns);
+            sortedColumns.addAll(unloadedColumns.stream().filter(c -> !c.isId()).collect(Collectors.toList()));
+        } else {
+            sortedColumns = unloadedColumns;
+        }
+        return sortedColumns;
     }
 
     private void createMultipleIdEntity(Class unloadedClass, EntityDescriptor entityDescriptor,

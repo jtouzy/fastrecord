@@ -27,7 +27,17 @@ public class EntityDescriptor {
     }
 
     public void addColumnDescriptor(ColumnDescriptor columnDescriptor) {
-        this.columnDescriptorsByColumn.put(columnDescriptor.getColumnName(), columnDescriptor);
+        ColumnDescriptor oldDescriptor = columnDescriptorsByColumn.get(columnDescriptor.getColumnName());
+        if (oldDescriptor == null) {
+            columnDescriptorsByColumn.put(columnDescriptor.getColumnName(), columnDescriptor);
+        } else {
+            if (oldDescriptor.isId() && !columnDescriptor.isId()) {
+                // Do not replace the descriptor if it's an ID column referenced in another table column
+                // In this case the first column is the only one to add
+            } else {
+                columnDescriptorsByColumn.put(columnDescriptor.getColumnName(), columnDescriptor);
+            }
+        }
     }
 
     public void removeColumnDescriptor(ColumnDescriptor columnDescriptor) {

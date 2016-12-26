@@ -23,10 +23,10 @@ public class ResultSetObjectMaker<T> {
     private final QueryContext queryContext;
     private final ResultSet resultSet;
     private final Map<String,EntityDescriptor> entityDescriptorsByAlias;
-    private final Map<ColumnDescriptor,String> columnDescriptorAliasMapping;
+    private final Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping;
 
     public ResultSetObjectMaker(QueryContext queryContext, Map<String,EntityDescriptor> entityDescriptorsByAlias,
-                                Map<ColumnDescriptor,String> columnDescriptorAliasMapping, ResultSet resultSet) {
+                                Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping, ResultSet resultSet) {
         this.queryContext = queryContext;
         this.entityDescriptorsByAlias = entityDescriptorsByAlias;
         this.columnDescriptorAliasMapping = columnDescriptorAliasMapping;
@@ -82,7 +82,7 @@ public class ResultSetObjectMaker<T> {
         for (Map.Entry<String,Object> valueEntry : resultSetValuesForEntity.entrySet()) {
             // TODO safe checking of optional columnDescriptor
             columnDescriptor = entityDescriptor.getColumnDescriptorByColumn(valueEntry.getKey()).get();
-            relatedAlias = columnDescriptorAliasMapping.get(columnDescriptor);
+            relatedAlias = columnDescriptorAliasMapping.get(tableAlias, columnDescriptor);
             invokeSetter(relatedAlias, valueEntry, values, instanceCache, instance, columnDescriptor, valueEntry.getValue());
         }
         return instance;
