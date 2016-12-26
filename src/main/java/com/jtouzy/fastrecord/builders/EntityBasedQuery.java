@@ -157,7 +157,6 @@ public class EntityBasedQuery<T> {
 
     private void addSimpleJoinConditions(String tableAlias, EntityDescriptor relatedDescriptor,
                                          ColumnDescriptor columnRelatedToFilled) {
-        columnDescriptorAliasMapping.put(firstEntityDescriptorAlias, columnRelatedToFilled, tableAlias);
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
         ColumnDescriptor associatedColumnDescriptor;
         ConditionContext condition;
@@ -175,6 +174,7 @@ public class EntityBasedQuery<T> {
             } else {
                 associatedColumnDescriptor = associatedColumnDescriptors.get(0);
             }
+            columnDescriptorAliasMapping.put(originAlias, associatedColumnDescriptor, tableAlias);
             condition = new BaseConditionContext(ConditionOperator.EQUALS);
             condition.addFirstExpression(new BaseTableColumnContext(firstEntityDescriptorAlias, entityDescriptor.getTableName(),
                     associatedColumnDescriptor.getColumnName(), associatedColumnDescriptor.getColumnType()));
