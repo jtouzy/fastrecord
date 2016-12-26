@@ -18,4 +18,13 @@ public class BaseDbReadyStatementParameter implements DbReadyStatementParameter 
     public int getType() {
         return type;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("BaseDbReadyStatementParameter{");
+        sb.append("value='").append(value).append('\'');
+        sb.append(", type=").append(type);
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -5,12 +5,14 @@ public class FastRecordConfiguration {
     public static final String ENTITIES_CLASS_PACKAGE = FASTRECORD_PROPERTIES_PREFIX + "entities.package";
     public static final String WRITERS_CLASS_PACKAGE = FASTRECORD_PROPERTIES_PREFIX + "writers.package";
     public static final String TYPE_MANAGERS_CLASS_PACKAGE = FASTRECORD_PROPERTIES_PREFIX + "type.managers.package";
+    public static final String PRINT_SQL = FASTRECORD_PROPERTIES_PREFIX + "print_sql";
 
     private String entitiesClassPackage;
     private String writersClassPackage;
     private String typeManagersClassPackage;
     private NamingStrategy tableNamingStrategy;
     private NamingStrategy columnNamingStrategy;
+    private boolean printSql;
 
     public FastRecordConfiguration() {
         setTableNamingStrategy(NamingStrategy.UPPER_CAMEL_TO_LOWER_UNDERSCORE);
@@ -55,5 +57,13 @@ public class FastRecordConfiguration {
 
     public void setTypeManagersClassPackage(String typeManagersClassPackage) {
         this.typeManagersClassPackage = typeManagersClassPackage;
+    }
+
+    public boolean isPrintSql() {
+        return printSql;
+    }
+
+    public void setPrintSql(boolean printSql) {
+        this.printSql = printSql;
     }
 }

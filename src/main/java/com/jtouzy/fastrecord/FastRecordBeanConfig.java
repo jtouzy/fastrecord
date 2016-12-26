@@ -29,6 +29,8 @@ public class FastRecordBeanConfig {
         configuration.setEntitiesClassPackage(environment.getRequiredProperty(ENTITIES_CLASS_PACKAGE));
         configuration.setWritersClassPackage(environment.getProperty(WRITERS_CLASS_PACKAGE));
         configuration.setTypeManagersClassPackage(environment.getProperty(TYPE_MANAGERS_CLASS_PACKAGE));
+        String printSql = environment.getProperty(PRINT_SQL);
+        configuration.setPrintSql(printSql != null && Boolean.parseBoolean(printSql));
         return configuration;
     }
 }

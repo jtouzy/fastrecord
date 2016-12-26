@@ -2,6 +2,7 @@ package com.jtouzy.fastrecord.builders;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.config.FastRecordConstants;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDefinitionException;
@@ -73,6 +74,11 @@ public class EntityBasedQuery<T> {
      */
     @Autowired
     private DataSource dataSource;
+    /**
+     * FastRecord configuration.
+     */
+    @Autowired
+    private FastRecordConfiguration configuration;
 
     // ---------------------------------------------------------------------------------------------
     // Metadata and tools properties
@@ -252,7 +258,7 @@ public class EntityBasedQuery<T> {
             Connection connection = dataSource.getConnection();
             DbReadyStatementMetadata metadata = writeMetadata();
             String sqlString = metadata.getSqlString().toString();
-            logger.debug("SQL String [{}]", sqlString);
+            printSql(metadata);
             PreparedStatement preparedStatement = connection.prepareStatement(sqlString);
             int index = 1;
             for (DbReadyStatementParameter parameter : metadata.getParameters()) {
@@ -497,6 +503,18 @@ public class EntityBasedQuery<T> {
             condition.addCompareExpression(new BaseTableColumnContext(tableAlias, relatedDescriptor.getTableName(),
                     relatedIdColumn.getColumnName(), relatedIdColumn.getColumnType()));
             queryContext.getConditionsContext().addConditionContext(ConditionsOperator.AND, condition);
+        }
+    }
+
+    /**
+     * Print SQL in logger if the configuration enables it.
+     * The property to enable the SQL print is FastRecordConfiguration.PRINT_SQL
+     *
+     * @param metadata SQL metadata to print
+     */
+    private void printSql(DbReadyStatementMetadata metadata) {
+        if (configuration.isPrintSql()) {
+            logger.info("Execute SQL [{}], [{}]", metadata.getSqlString(), metadata.getParameters());
         }
     }
 
