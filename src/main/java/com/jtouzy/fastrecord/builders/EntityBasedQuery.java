@@ -137,10 +137,11 @@ public class EntityBasedQuery<T> {
         return writerFactory.getWriter(writerCache, queryContext).write();
     }
 
-    private List<ColumnDescriptor> safeGetColumnsRelatedToFilled(Class relatedClass, String propertyName) {
-        List<ColumnDescriptor> columnsRelatedToFilled = entityDescriptor.getDistinctColumnDescriptorsWithType(relatedClass);
+    private List<ColumnDescriptor> safeGetColumnsRelatedToFilled(EntityDescriptor entityDescriptorOrigin,
+                                                                 Class relatedClass, String propertyName) {
+        List<ColumnDescriptor> columnsRelatedToFilled = entityDescriptorOrigin.getDistinctColumnDescriptorsWithType(relatedClass);
         if (columnsRelatedToFilled.size() == 0) {
-            throw new EntityDefinitionException("Entity [" + entityDescriptor.getClazz() +
+            throw new EntityDefinitionException("Entity [" + entityDescriptorOrigin.getClazz() +
                     "] does not have relation to [" + relatedClass + "]");
         }
         if (propertyName != null) {
@@ -148,14 +149,15 @@ public class EntityBasedQuery<T> {
                     .filter(p -> propertyName.equals(p.getPropertyName())).findFirst();
             if (!columnDescriptorOptional.isPresent()) {
                 throw new EntityDefinitionException("Property (with name [" + propertyName + "]) in entity [" +
-                        entityDescriptor.getClazz() + "] is not from type [" + relatedClass + "]");
+                        entityDescriptorOrigin.getClazz() + "] is not from type [" + relatedClass + "]");
             }
             return Collections.singletonList(columnDescriptorOptional.get());
         }
         return columnsRelatedToFilled;
     }
 
-    private void addSimpleJoinConditions(String tableAlias, EntityDescriptor relatedDescriptor,
+    private void addSimpleJoinConditions(String originAlias, EntityDescriptor entityDescriptorOrigin,
+                                         String tableAlias, EntityDescriptor relatedDescriptor,
                                          ColumnDescriptor columnRelatedToFilled) {
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
         ColumnDescriptor associatedColumnDescriptor;
@@ -163,7 +165,7 @@ public class EntityBasedQuery<T> {
         List<ColumnDescriptor> associatedColumnDescriptors;
         for (ColumnDescriptor relatedIdColumn : idColumns) {
             // TODO revision of this case (add doc)
-            associatedColumnDescriptors = entityDescriptor.getColumnDescriptorsRelatedWith(relatedIdColumn);
+            associatedColumnDescriptors = entityDescriptorOrigin.getColumnDescriptorsRelatedWith(relatedIdColumn);
             if (associatedColumnDescriptors.size() == 0) {
                 // In the case of an Entity is related to himself, they may don't have all the related columns
                 // registered because the ID could be associated to another column.
@@ -176,7 +178,7 @@ public class EntityBasedQuery<T> {
             }
             columnDescriptorAliasMapping.put(originAlias, associatedColumnDescriptor, tableAlias);
             condition = new BaseConditionContext(ConditionOperator.EQUALS);
-            condition.addFirstExpression(new BaseTableColumnContext(firstEntityDescriptorAlias, entityDescriptor.getTableName(),
+            condition.addFirstExpression(new BaseTableColumnContext(originAlias, entityDescriptorOrigin.getTableName(),
                     associatedColumnDescriptor.getColumnName(), associatedColumnDescriptor.getColumnType()));
             condition.addCompareExpression(new BaseTableColumnContext(tableAlias, relatedDescriptor.getTableName(),
                     relatedIdColumn.getColumnName(), relatedIdColumn.getColumnType()));
@@ -189,18 +191,40 @@ public class EntityBasedQuery<T> {
     }
 
     public EntityBasedQuery<T> fill(Class filledEntityClass, String propertyName) {
+        return fillFrom(entityDescriptor, filledEntityClass, propertyName);
+    }
+
+    public EntityBasedQuery<T> fillFrom(Class originEntityClass, Class filledEntityClass) {
+        return fillFrom(originEntityClass, filledEntityClass, null);
+    }
+
+    public EntityBasedQuery<T> fillFrom(Class originEntityClass, Class filledEntityClass, String property) {
+        return fillFrom(findEntityDescriptorWithClass(originEntityClass), filledEntityClass, property);
+    }
+
+    public EntityBasedQuery<T> fillFrom(EntityDescriptor descriptor, Class filledEntityClass, String propertyName) {
         // Safe checks
         EntityDescriptor relatedDescriptor = findEntityDescriptorWithClass(filledEntityClass);
         // Columns which represents properties to fill
         // In case of two same type property in one entity (example : two participants in one match)
         // This columns represents the two participants columns
-        List<ColumnDescriptor> columnsRelatedToFilled = safeGetColumnsRelatedToFilled(filledEntityClass, propertyName);
+        List<ColumnDescriptor> columnsRelatedToFilled =
+                safeGetColumnsRelatedToFilled(descriptor, filledEntityClass, propertyName);
+        // Get the origin alias
+        // TODO improve this to pass custom alias to fill() method to avoid duplicate EntityDescriptor
+        Optional<String> originAliasOptional = entityDescriptorsByAlias.entrySet().stream()
+                .filter(e -> e.getValue().equals(descriptor)).map(e -> e.getKey()).findFirst();
+        if (!originAliasOptional.isPresent()) {
+            throw new IllegalStateException("Entity with class [" + descriptor.getClazz() +
+                    "] is not registered in this query, or is not filled");
+        }
         // Context creation
         String tableAlias;
+        String originAlias = originAliasOptional.get();
         for (ColumnDescriptor columnDescriptor : columnsRelatedToFilled) {
             tableAlias = registerAlias(relatedDescriptor);
             createEntityDescriptorContext(tableAlias, columnDescriptor, JoinOperator.JOIN, relatedDescriptor);
-            addSimpleJoinConditions(tableAlias, relatedDescriptor, columnDescriptor);
+            addSimpleJoinConditions(originAlias, descriptor, tableAlias, relatedDescriptor, columnDescriptor);
         }
         return this;
     }
