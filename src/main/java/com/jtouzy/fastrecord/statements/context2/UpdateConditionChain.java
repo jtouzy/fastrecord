@@ -3,13 +3,13 @@ package com.jtouzy.fastrecord.statements.context2;
 import com.jtouzy.fastrecord.utils.Chain;
 
 /**
- * SQL condition chain (in WHERE clause). Abstract generic interface.
+ * SQL update (U,D) condition chain (in WHERE clause).
  */
-public interface ConditionChain {
+public interface UpdateConditionChain extends ConditionChain {
     /**
      * Get the SQL condition chain.
      *
      * @return SQL condition chain.
      */
-    Chain<? extends ConditionChain,ConditionChainOperator> getChain();
+    Chain<UpdateConditionChain, ConditionChainOperator> getChain();
 }

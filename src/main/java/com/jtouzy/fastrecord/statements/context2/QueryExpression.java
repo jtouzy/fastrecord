@@ -33,5 +33,5 @@ public interface QueryExpression
      *
      * @return SQL condition chain
      */
-    ConditionChain getConditionChain();
+    QueryConditionChain getConditionChain();
 }

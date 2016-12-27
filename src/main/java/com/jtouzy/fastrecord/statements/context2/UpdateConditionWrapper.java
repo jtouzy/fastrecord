@@ -3,7 +3,7 @@ package com.jtouzy.fastrecord.statements.context2;
 /**
  * SQL update (U,D) condition wrapper with operator.
  */
-public interface UpdateConditionWrapper extends ConditionWrapper {
+public interface UpdateConditionWrapper extends ConditionWrapper, UpdateConditionChain {
     /**
      * Get first SQL expression in condition.
      *
