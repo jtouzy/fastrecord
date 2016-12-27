@@ -3,13 +3,13 @@ package com.jtouzy.fastrecord.statements.context2;
 /**
  * Native SQL table column expression.
  */
-public interface TableColumnExpression extends NativeExpression, TypedExpression {
+public interface TableColumnExpression<T extends TableExpression> extends NativeExpression, TypedExpression {
     /**
      * Get SQL table expression.
      *
      * @return SQL table expression
      */
-    TableExpression getTableExpression();
+    T getTableExpression();
 
     /**
      * Get SQL table column name.
