@@ -17,10 +17,11 @@ public class DefaultConstantExpressionWriterTest
     }
 
     @Test
-    public void simpleConstantExpressionTest()
+    public void constantExpressionTest()
     throws Exception {
         ConstantExpression expression = new DefaultConstantExpression(Types.VARCHAR, "Constant_value");
         DbReadyStatementMetadata metadata = getWriterResult(expression);
+
         Assert.assertEquals("?", metadata.getSqlString().toString());
         Assert.assertEquals(1, metadata.getParameters().size());
         Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(0).getType());

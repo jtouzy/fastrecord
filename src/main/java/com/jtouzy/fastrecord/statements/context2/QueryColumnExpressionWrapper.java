@@ -3,7 +3,7 @@ package com.jtouzy.fastrecord.statements.context2;
 /**
  * SQL query column expression (SELECT clause), wrapper with alias.
  */
-public interface QueryColumnExpressionWrapper {
+public interface QueryColumnExpressionWrapper extends WritableContext {
     /**
      * Get SQL query column alias.
      *

@@ -4,11 +4,14 @@ import com.jtouzy.fastrecord.statements.context2.WritableContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.writers2.Writer;
 import com.jtouzy.fastrecord.statements.writers2.WriterCache;
+import com.jtouzy.fastrecord.statements.writers2.WriterPool;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -22,11 +25,22 @@ public abstract class AbstractWriterTest<C extends WritableContext, T extends Wr
 
     /**
      * Spring configuration for writer tests.
+     *
      * Only scan the writers package to avoid initialization of all other unwanted beans for this test.
+     *
+     * Simulation of FastRecordApplicationListener with only WriterPool initialization because the class
+     * is not in ComponentScan scope for this test.
      */
     @Configuration
     @ComponentScan(basePackages = {"com.jtouzy.fastrecord.statements.writers2"})
-    public static class TestConfiguration {
+    public static class TestConfiguration implements ApplicationListener<ContextRefreshedEvent> {
+        @Autowired
+        private WriterPool writerPool;
+
+        @Override
+        public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
+            writerPool.initializeWriters(contextRefreshedEvent.getApplicationContext());
+        }
     }
 
     public AbstractWriterTest(Class<T> writerClass) {
