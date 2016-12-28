@@ -4,10 +4,7 @@ import com.jtouzy.fastrecord.statements.context2.AliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context2.ConditionOperator;
 import com.jtouzy.fastrecord.statements.context2.ConstantExpression;
 import com.jtouzy.fastrecord.statements.context2.QueryConditionChain;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableColumnExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultConstantExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionChain;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionWrapper;
+import com.jtouzy.fastrecord.statements.context2.impl.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,9 +36,15 @@ public class QueryConditionChainTest {
         QueryConditionChain queryConditionChain = new DefaultQueryConditionChain();
         queryConditionChain.addCondition(
                 new DefaultQueryConditionWrapper(
-                        new DefaultAliasTableColumnExpression(Types.VARCHAR, null, "column1"),
+                        new DefaultAliasTableColumnExpression(
+                                Types.VARCHAR,
+                                new DefaultAliasTableExpression("table", "alias"),
+                                "column1"),
                         ConditionOperator.EQUALS,
-                        new DefaultAliasTableColumnExpression(Types.VARCHAR, null, "column2")));
+                        new DefaultAliasTableColumnExpression(
+                                Types.VARCHAR,
+                                new DefaultAliasTableExpression("table", "alias"),
+                                "column2")));
         // Assertions
         QueryConditionChain conditionChain = queryConditionChain.getChain().get(0).getItem();
         Assert.assertEquals(DefaultQueryConditionWrapper.class, conditionChain.getClass());
