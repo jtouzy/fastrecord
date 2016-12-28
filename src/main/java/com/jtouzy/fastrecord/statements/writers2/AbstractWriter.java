@@ -30,6 +30,11 @@ public abstract class AbstractWriter<T extends WritableContext> implements Write
         return statementMetadata;
     }
 
+    @Override
+    public boolean isCacheable() {
+        return true;
+    }
+
     protected <C extends WritableContext> void mergeWriter(C context) {
         Writer<C> writer = writerCache.getWriter(context);
         writer.write();

@@ -38,4 +38,11 @@ public interface Writer<T extends WritableContext> {
      * @return StatementMetadata resulting of the write process
      */
     DbReadyStatementMetadata getResult();
+
+    /**
+     * Boolean to tell if the Writer is cacheable in WriterCache during write process.
+     *
+     * @return True if the writer is cacheable, false otherwise
+     */
+    boolean isCacheable();
 }

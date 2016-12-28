@@ -38,6 +38,9 @@ public class WriterCache {
     /**
      * Get a writer from cache or instantiate it with the Spring application context.
      *
+     * If the writer is cacheable, store the instance for reuse it, otherwise create a new instance
+     * each time the writer is called.
+     *
      * @param writableContext The writable context to send to the writer
      * @param <C> Type of the writable context
      *
@@ -49,7 +52,8 @@ public class WriterCache {
         if (writer == null) {
             Class<Writer> writerClass = writerPool.findWriterClassFor(writableContext.getClass());
             writer = applicationContext.getBean(writerClass);
-            cache.put(writableContext.getClass(), writer);
+            if (writer.isCacheable())
+                cache.put(writableContext.getClass(), writer);
         }
         writer.refreshContext(writableContext, this);
         return writer;
