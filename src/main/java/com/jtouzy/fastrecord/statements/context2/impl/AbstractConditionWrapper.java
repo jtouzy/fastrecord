@@ -5,23 +5,28 @@ import com.jtouzy.fastrecord.statements.context2.ConditionChain;
 import com.jtouzy.fastrecord.statements.context2.ConditionOperator;
 import com.jtouzy.fastrecord.statements.context2.ConditionWrapper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class AbstractConditionWrapper<E extends BasicConditionExpression, C extends ConditionChain<C>>
         extends AbstractConditionChain<C> implements ConditionWrapper<E> {
 
-    private final E firstConditionExpression;
+    private final List<E> firstConditionExpressionList;
     private final ConditionOperator conditionOperator;
-    private final E compareConditionExpression;
+    private final List<E> compareConditionExpressionList;
 
     AbstractConditionWrapper(E firstConditionExpression, ConditionOperator conditionOperator,
                              E compareConditionExpression) {
-        this.firstConditionExpression = firstConditionExpression;
+        firstConditionExpressionList = new ArrayList<>();
+        firstConditionExpressionList.add(firstConditionExpression);
         this.conditionOperator = conditionOperator;
-        this.compareConditionExpression = compareConditionExpression;
+        compareConditionExpressionList = new ArrayList<>();
+        compareConditionExpressionList.add(compareConditionExpression);
     }
 
     @Override
-    public E getFirstConditionExpression() {
-        return firstConditionExpression;
+    public List<E> getFirstConditionExpressions() {
+        return firstConditionExpressionList;
     }
 
     @Override
@@ -30,7 +35,7 @@ public abstract class AbstractConditionWrapper<E extends BasicConditionExpressio
     }
 
     @Override
-    public E getCompareConditionExpression() {
-        return compareConditionExpression;
+    public List<E> getCompareConditionExpressions() {
+        return compareConditionExpressionList;
     }
 }

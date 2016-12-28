@@ -1,15 +1,17 @@
 package com.jtouzy.fastrecord.statements.context2;
 
+import java.util.List;
+
 /**
  * SQL condition wrapper with operator.
  */
 public interface ConditionWrapper<E extends BasicConditionExpression> extends WritableContext {
     /**
-     * Get first SQL expression in condition.
+     * Get first SQL expressions in condition.
      *
-     * @return First SQL expression in condition
+     * @return First SQL expressions in condition
      */
-    E getFirstConditionExpression();
+    List<E> getFirstConditionExpressions();
 
     /**
      * Get SQL condition operator.
@@ -19,9 +21,9 @@ public interface ConditionWrapper<E extends BasicConditionExpression> extends Wr
     ConditionOperator getConditionOperator();
 
     /**
-     * Get compare SQL expression in condition.
+     * Get compare SQL expressions in condition.
      *
-     * @return Compare SQL expression in condition
+     * @return Compare SQL expressions in condition
      */
-    E getCompareConditionExpression();
+    List<E> getCompareConditionExpressions();
 }
