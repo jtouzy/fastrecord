@@ -5,7 +5,7 @@ import com.jtouzy.fastrecord.utils.Chain;
 /**
  * SQL condition chain (in WHERE clause). Abstract generic interface.
  */
-public interface ConditionChain<T extends ConditionChain<T>> {
+public interface ConditionChain<T extends ConditionChain<T>> extends WritableContext {
     /**
      * Add the first condition to the chain.
      *
