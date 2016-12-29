@@ -1,10 +1,10 @@
 package com.jtouzy.fastrecord.tests.writers;
 
-import com.jtouzy.fastrecord.statements.context2.QueryTargetExpressionWrapper;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryTargetExpressionWrapper;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultSimpleTableExpression;
+import com.jtouzy.fastrecord.statements.context.QueryTargetExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryTargetExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.statements.writers2.DefaultQueryTargetExpressionWrapperWriter;
+import com.jtouzy.fastrecord.statements.writers.DefaultQueryTargetExpressionWrapperWriter;
 import org.junit.Assert;
 import org.junit.Test;
 

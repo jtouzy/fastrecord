@@ -1,14 +1,14 @@
 package com.jtouzy.fastrecord.tests.writers;
 
-import com.jtouzy.fastrecord.statements.context2.AliasTableColumnExpression;
-import com.jtouzy.fastrecord.statements.context2.ConditionOperator;
-import com.jtouzy.fastrecord.statements.context2.ConditionWrapper;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableColumnExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultConstantExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionWrapper;
+import com.jtouzy.fastrecord.statements.context.AliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.ConditionOperator;
+import com.jtouzy.fastrecord.statements.context.ConditionWrapper;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionWrapper;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.statements.writers2.DefaultConditionWrapperWriter;
+import com.jtouzy.fastrecord.statements.writers.DefaultConditionWrapperWriter;
 import org.junit.Assert;
 import org.junit.Test;
 

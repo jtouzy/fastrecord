@@ -1,10 +1,10 @@
 package com.jtouzy.fastrecord.tests.writers;
 
-import com.jtouzy.fastrecord.statements.context2.AliasTableColumnExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableColumnExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context.AliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.statements.writers2.DefaultAliasTableColumnExpressionWriter;
+import com.jtouzy.fastrecord.statements.writers.DefaultAliasTableColumnExpressionWriter;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -1,9 +1,9 @@
 package com.jtouzy.fastrecord.tests.writers;
 
-import com.jtouzy.fastrecord.statements.context2.SimpleTableExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultSimpleTableExpression;
+import com.jtouzy.fastrecord.statements.context.SimpleTableExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.statements.writers2.DefaultSimpleTableExpressionWriter;
+import com.jtouzy.fastrecord.statements.writers.DefaultSimpleTableExpressionWriter;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -2,7 +2,7 @@ package com.jtouzy.fastrecord;
 
 import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.entity.types.TypeManagerPool;
-import com.jtouzy.fastrecord.statements.writers2.WriterPool;
+import com.jtouzy.fastrecord.statements.writers.WriterPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;

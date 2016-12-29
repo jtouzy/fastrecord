@@ -2,14 +2,14 @@ package com.jtouzy.fastrecord.builders;
 
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.ColumnNotFoundException;
-import com.jtouzy.fastrecord.statements.context2.ConditionChainOperator;
-import com.jtouzy.fastrecord.statements.context2.ConditionOperator;
-import com.jtouzy.fastrecord.statements.context2.QueryConditionChain;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableColumnExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultConstantExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionChain;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionWrapper;
+import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
+import com.jtouzy.fastrecord.statements.context.ConditionOperator;
+import com.jtouzy.fastrecord.statements.context.QueryConditionChain;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionChain;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionWrapper;
 
 import java.util.ArrayList;
 import java.util.List;

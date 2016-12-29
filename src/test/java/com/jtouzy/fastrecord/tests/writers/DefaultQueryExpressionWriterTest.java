@@ -1,16 +1,16 @@
 package com.jtouzy.fastrecord.tests.writers;
 
-import com.jtouzy.fastrecord.statements.context2.JoinOperator;
-import com.jtouzy.fastrecord.statements.context2.QueryExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableColumnExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryColumnExpressionWrapper;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryTargetExpressionJoin;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryTargetExpressionWrapper;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultSimpleTableExpression;
+import com.jtouzy.fastrecord.statements.context.JoinOperator;
+import com.jtouzy.fastrecord.statements.context.QueryExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryColumnExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryTargetExpressionJoin;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryTargetExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.statements.writers2.DefaultQueryExpressionWriter;
+import com.jtouzy.fastrecord.statements.writers.DefaultQueryExpressionWriter;
 import org.junit.Assert;
 import org.junit.Test;
 

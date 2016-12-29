@@ -5,7 +5,7 @@ import com.google.common.collect.Table;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
-import com.jtouzy.fastrecord.statements.context2.QueryExpression;
+import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

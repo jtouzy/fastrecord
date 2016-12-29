@@ -1,14 +1,14 @@
 package com.jtouzy.fastrecord.tests.writers;
 
-import com.jtouzy.fastrecord.statements.context2.ConditionChain;
-import com.jtouzy.fastrecord.statements.context2.ConditionChainOperator;
-import com.jtouzy.fastrecord.statements.context2.ConditionOperator;
-import com.jtouzy.fastrecord.statements.context2.QueryConditionChain;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultConstantExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionChain;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionWrapper;
+import com.jtouzy.fastrecord.statements.context.ConditionChain;
+import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
+import com.jtouzy.fastrecord.statements.context.ConditionOperator;
+import com.jtouzy.fastrecord.statements.context.QueryConditionChain;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionChain;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionWrapper;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.statements.writers2.DefaultConditionChainWriter;
+import com.jtouzy.fastrecord.statements.writers.DefaultConditionChainWriter;
 import org.junit.Assert;
 import org.junit.Test;
 

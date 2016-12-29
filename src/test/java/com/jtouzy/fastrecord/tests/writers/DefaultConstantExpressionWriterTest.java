@@ -1,9 +1,9 @@
 package com.jtouzy.fastrecord.tests.writers;
 
-import com.jtouzy.fastrecord.statements.context2.ConstantExpression;
-import com.jtouzy.fastrecord.statements.context2.impl.DefaultConstantExpression;
+import com.jtouzy.fastrecord.statements.context.ConstantExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import com.jtouzy.fastrecord.statements.writers2.DefaultConstantExpressionWriter;
+import com.jtouzy.fastrecord.statements.writers.DefaultConstantExpressionWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
