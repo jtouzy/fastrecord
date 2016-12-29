@@ -4,11 +4,7 @@ import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.QueryTargetExpressionWrapper;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-@Component("FastRecord.Writer.DefaultQueryTargetExpressionWrapperWriter")
-@Scope("prototype")
 @Writes(QueryTargetExpressionWrapper.class)
 public class DefaultQueryTargetExpressionWrapperWriter extends AbstractWriter<QueryTargetExpressionWrapper> {
     @Override

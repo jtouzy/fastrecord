@@ -6,13 +6,9 @@ import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.WritableContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.utils.Chain;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 
-@Component("FastRecord.Writer.DefaultConditionChainWriter")
-@Scope("prototype")
 @Writes(ConditionChain.class)
 public class DefaultConditionChainWriter extends AbstractWriter<ConditionChain> {
     @Override

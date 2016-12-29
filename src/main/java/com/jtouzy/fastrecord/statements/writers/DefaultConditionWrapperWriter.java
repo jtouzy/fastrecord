@@ -4,14 +4,10 @@ import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.BasicConditionExpression;
 import com.jtouzy.fastrecord.statements.context.ConditionWrapper;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.List;
 
-@Component("FastRecord.Writer.DefaultConditionWrapperWriter")
-@Scope("prototype")
 @Writes(ConditionWrapper.class)
 public class DefaultConditionWrapperWriter extends AbstractWriter<ConditionWrapper> {
     @Override

@@ -4,11 +4,7 @@ import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.AliasTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
-@Component("FastRecord.Writer.DefaultAliasTableExpressionWriter")
-@Scope("prototype")
 @Writes(AliasTableExpression.class)
 public class DefaultAliasTableExpressionWriter extends AbstractTableExpressionWriter<AliasTableExpression> {
     @Override
