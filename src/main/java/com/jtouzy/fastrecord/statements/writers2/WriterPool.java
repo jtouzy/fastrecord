@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Service("FastRecord.WriterProcess.WriterPool")
+@Service("FastRecord.Core.WriterPool")
 public class WriterPool {
     private static final Logger logger = LoggerFactory.getLogger(WriterPool.class);
     private final Map<Class,Class> writerClassPool;

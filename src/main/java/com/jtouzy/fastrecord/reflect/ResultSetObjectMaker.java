@@ -2,7 +2,7 @@ package com.jtouzy.fastrecord.reflect;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import com.jtouzy.fastrecord.config.FastRecordConstants;
+import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.statements.context2.QueryExpression;
@@ -20,13 +20,17 @@ import java.util.Map;
 
 public class ResultSetObjectMaker<T> {
     private static final Logger logger = LoggerFactory.getLogger(ResultSetObjectMaker.class);
+    private final FastRecordConfiguration configuration;
     private final QueryExpression queryContext;
     private final ResultSet resultSet;
     private final Map<String,EntityDescriptor> entityDescriptorsByAlias;
     private final Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping;
 
-    public ResultSetObjectMaker(QueryExpression queryContext, Map<String,EntityDescriptor> entityDescriptorsByAlias,
-                                Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping, ResultSet resultSet) {
+    public ResultSetObjectMaker(FastRecordConfiguration configuration, QueryExpression queryContext,
+                                Map<String,EntityDescriptor> entityDescriptorsByAlias,
+                                Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping,
+                                ResultSet resultSet) {
+        this.configuration = configuration;
         this.queryContext = queryContext;
         this.entityDescriptorsByAlias = entityDescriptorsByAlias;
         this.columnDescriptorAliasMapping = columnDescriptorAliasMapping;
@@ -71,8 +75,8 @@ public class ResultSetObjectMaker<T> {
         Map<String,Object> resultSetValuesForEntity = new LinkedHashMap<>();
         values.entrySet().stream().filter(e -> e.getKey().startsWith(tableAlias)).forEach(e ->
             resultSetValuesForEntity.put(
-                    e.getKey().substring(e.getKey().indexOf(FastRecordConstants.COLUMN_ALIAS_SEPARATOR) +
-                            FastRecordConstants.COLUMN_ALIAS_SEPARATOR.length()),
+                    e.getKey().substring(e.getKey().indexOf(configuration.getColumnAliasSeparator()) +
+                            configuration.getColumnAliasSeparator().length()),
                     e.getValue())
         );
         logger.debug("Values to set on the new object [{}]", resultSetValuesForEntity);

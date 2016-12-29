@@ -2,9 +2,11 @@ package com.jtouzy.fastrecord.entity.types.impl;
 
 import com.jtouzy.fastrecord.annotations.support.Converts;
 import com.jtouzy.fastrecord.entity.types.TypeManager;
+import org.springframework.stereotype.Component;
 
 import java.sql.Types;
 
+@Component
 @Converts(Integer.class)
 public class IntegerTypeManager implements TypeManager<Integer> {
     @Override

@@ -10,7 +10,6 @@ import com.jtouzy.fastrecord.config.ConfigurationBased;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.types.TypeManager;
 import com.jtouzy.fastrecord.entity.types.TypeManagerPool;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +39,9 @@ import java.util.stream.Collectors;
  *
  * @author jtouzy
  */
-@Service
+@Service("FastRecord.Core.EntityLoader")
 public class EntityLoader extends ConfigurationBased {
     private static final Logger logger = LoggerFactory.getLogger(EntityLoader.class);
-
     private final LinkedHashMap<Class,EntityDescriptor> entityDescriptorsByClass;
     private final Multimap<Class,ColumnDescriptor> laterLoading = ArrayListMultimap.create();
 
@@ -56,22 +54,15 @@ public class EntityLoader extends ConfigurationBased {
         entityDescriptorsByClass = new LinkedHashMap<>();
     }
 
-    public LinkedHashMap<Class,EntityDescriptor> load() {
-        logger.debug("EntityLoader starts loading entities...");
-        this.readEntities();
-        if (logger.isDebugEnabled()) {
-            this.printAllEntities();
-        }
-        return entityDescriptorsByClass;
-    }
-
-    private void readEntities() {
-        Reflections reflections = new Reflections(getConfiguration().getEntitiesClassPackage());
-        Set<Class<?>> entityClasses = reflections.getTypesAnnotatedWith(Entity.class);
+    LinkedHashMap<Class,EntityDescriptor> load(List<Class> entityClasses) {
         for (Class entityClass : entityClasses) {
             readEntityClass(entityClass);
         }
         loadLateEntities();
+        if (logger.isDebugEnabled()) {
+            printAllEntities();
+        }
+        return entityDescriptorsByClass;
     }
 
     private void readEntityClass(Class<?> entityClass) {

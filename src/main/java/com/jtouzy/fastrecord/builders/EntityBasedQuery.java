@@ -3,7 +3,6 @@ package com.jtouzy.fastrecord.builders;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
-import com.jtouzy.fastrecord.config.FastRecordConstants;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDefinitionException;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
@@ -50,7 +49,7 @@ import java.util.Optional;
  *
  * @param <T> Entity class
  */
-@Service
+@Service("FastRecord.Core.EntityBasedQuery")
 @Scope("prototype")
 public class EntityBasedQuery<T> {
     /**
@@ -272,8 +271,8 @@ public class EntityBasedQuery<T> {
         } catch (SQLException ex) {
             throw new QueryException(ex);
         }
-        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(queryContext, entityDescriptorsByAlias,
-                columnDescriptorAliasMapping, rs);
+        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(configuration, queryContext,
+                entityDescriptorsByAlias, columnDescriptorAliasMapping, rs);
         return objectMaker.make();
     }
 
@@ -373,7 +372,7 @@ public class EntityBasedQuery<T> {
             if (columnToFillDescriptor != null && columnDescriptor.equals(columnToFillDescriptor.getRelatedColumn())) {
                 continue;
             }
-            columnAlias = tableAlias + FastRecordConstants.COLUMN_ALIAS_SEPARATOR + columnDescriptor.getColumnName();
+            columnAlias = tableAlias + configuration.getColumnAliasSeparator() + columnDescriptor.getColumnName();
             queryContext.getColumns().add(
                     new DefaultQueryColumnExpressionWrapper(
                             columnAlias,
