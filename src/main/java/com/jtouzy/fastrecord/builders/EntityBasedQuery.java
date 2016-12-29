@@ -303,10 +303,10 @@ public class EntityBasedQuery<T> {
      * Creates the default base QueryContext.
      */
     private void initializeContext() {
-        this.conditionsConfigurer = new ConditionsConfigurer<>(this);
         this.entityDescriptorsByAlias = new LinkedHashMap<>();
         this.columnDescriptorAliasMapping = HashBasedTable.create();
         createQueryContextWithEntity();
+        this.conditionsConfigurer = new ConditionsConfigurer<>(this);
     }
 
     /**
@@ -487,11 +487,7 @@ public class EntityBasedQuery<T> {
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
         ColumnDescriptor associatedColumnDescriptor;
         QueryConditionChain conditionChain = new DefaultQueryConditionChain();
-        if (queryContext.getConditionChain().getChain().size() == 0) {
-            queryContext.getConditionChain().addCondition(conditionChain);
-        } else {
-            queryContext.getConditionChain().addCondition(ConditionChainOperator.AND, conditionChain);
-        }
+        ConditionsHelper.addCondition(queryContext.getConditionChain(), ConditionChainOperator.AND, conditionChain);
         QueryConditionChain condition;
         List<ColumnDescriptor> associatedColumnDescriptors;
         // Iterate over the related Entity ID columns
@@ -524,7 +520,7 @@ public class EntityBasedQuery<T> {
                             relatedIdColumn.getColumnType(),
                             new DefaultAliasTableExpression(relatedDescriptor.getTableName(), tableAlias),
                             relatedIdColumn.getColumnName()));
-            conditionChain.addCondition(condition);
+            ConditionsHelper.addCondition(conditionChain, ConditionChainOperator.AND, condition);
         }
     }
 

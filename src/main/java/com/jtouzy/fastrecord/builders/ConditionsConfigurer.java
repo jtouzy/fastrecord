@@ -25,7 +25,7 @@ public class ConditionsConfigurer<T> {
         conditionChainHierarchy = new ArrayList<>();
         currentConditionChain = queryBuilder.queryContext.getConditionChain();
         QueryConditionChain rootChain = new DefaultQueryConditionChain();
-        addCondition(ConditionChainOperator.AND, rootChain);
+        ConditionsHelper.addCondition(currentConditionChain, ConditionChainOperator.AND, rootChain);
         currentConditionChain = rootChain;
         conditionChainHierarchy.add(currentConditionChain);
     }
@@ -62,7 +62,7 @@ public class ConditionsConfigurer<T> {
     private ConditionsConfigurer<T> chain(ConditionChainOperator chainOperator) {
         QueryConditionChain newChain = new DefaultQueryConditionChain();
         conditionChainHierarchy.add(newChain);
-        addCondition(chainOperator, newChain);
+        ConditionsHelper.addCondition(currentConditionChain, chainOperator, newChain);
         currentConditionChain = newChain;
         return this;
     }
@@ -152,15 +152,7 @@ public class ConditionsConfigurer<T> {
                 new DefaultConstantExpression(
                         columnDescriptor.getColumnType(),
                         columnDescriptor.getTypeManager().convertToDatabase(value)));
-        addCondition(chainOperator, conditionChain);
+        ConditionsHelper.addCondition(currentConditionChain, chainOperator, conditionChain);
         return this;
-    }
-
-    private void addCondition(ConditionChainOperator chainOperator, QueryConditionChain conditionChain) {
-        if (currentConditionChain.getChain().size() == 0) {
-            currentConditionChain.addCondition(conditionChain);
-        } else {
-            currentConditionChain.addCondition(chainOperator, conditionChain);
-        }
     }
 }

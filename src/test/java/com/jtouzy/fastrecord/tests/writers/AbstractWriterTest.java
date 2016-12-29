@@ -28,7 +28,7 @@ public abstract class AbstractWriterTest<C extends WritableContext, T extends Wr
      *
      * Only scan the writers package to avoid initialization of all other unwanted beans for this test.
      *
-     * Simulation of FastRecordApplicationListener with only WriterPool initialization because the class
+     * Simulation of FastRecordInitializer with only WriterPool initialization because the class
      * is not in ComponentScan scope for this test.
      */
     @Configuration

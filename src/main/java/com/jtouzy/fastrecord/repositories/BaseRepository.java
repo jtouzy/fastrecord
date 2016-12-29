@@ -4,13 +4,14 @@ import com.jtouzy.fastrecord.builders.EntityBasedQuery;
 import com.jtouzy.fastrecord.builders.Query;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
-import org.springframework.beans.factory.InitializingBean;
+import com.jtouzy.fastrecord.lifecycle.FastRecordInitializedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 
 import java.util.List;
 import java.util.Optional;
 
-public abstract class BaseRepository<T> implements Repository<T>, InitializingBean {
+public abstract class BaseRepository<T> implements Repository<T> {
     @Autowired
     private EntityPool entityPool;
     protected final Class<T> entityClass;
@@ -20,8 +21,8 @@ public abstract class BaseRepository<T> implements Repository<T>, InitializingBe
         this.entityClass = entityClass;
     }
 
-    @Override
-    public void afterPropertiesSet()
+    @EventListener
+    public void handleInitialized(FastRecordInitializedEvent event)
     throws Exception {
         Optional<EntityDescriptor> entityDescriptorOptional = entityPool.getEntityDescriptor(entityClass);
         if (!entityDescriptorOptional.isPresent()) {
