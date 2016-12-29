@@ -2,25 +2,119 @@ package com.jtouzy.fastrecord.builders;
 
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.ColumnNotFoundException;
-import com.jtouzy.fastrecord.statements.context.BaseConditionContext;
-import com.jtouzy.fastrecord.statements.context.BaseConstantContext;
-import com.jtouzy.fastrecord.statements.context.BaseTableColumnContext;
-import com.jtouzy.fastrecord.statements.context.ConditionContext;
-import com.jtouzy.fastrecord.statements.context.ConditionOperator;
-import com.jtouzy.fastrecord.statements.context.ConditionsOperator;
+import com.jtouzy.fastrecord.statements.context2.ConditionChainOperator;
+import com.jtouzy.fastrecord.statements.context2.ConditionOperator;
+import com.jtouzy.fastrecord.statements.context2.QueryConditionChain;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultConstantExpression;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionChain;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionWrapper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class ConditionsConfigurer<T> {
     private final EntityBasedQuery<T> queryBuilder;
+    private final List<QueryConditionChain> conditionChainHierarchy;
+    private QueryConditionChain currentConditionChain;
 
     ConditionsConfigurer(EntityBasedQuery<T> queryBuilder) {
         this.queryBuilder = queryBuilder;
+        conditionChainHierarchy = new ArrayList<>();
+        currentConditionChain = queryBuilder.queryContext.getConditionChain();
+        QueryConditionChain rootChain = new DefaultQueryConditionChain();
+        addCondition(ConditionChainOperator.AND, rootChain);
+        currentConditionChain = rootChain;
+        conditionChainHierarchy.add(currentConditionChain);
     }
 
-    private void addCondition(ConditionsOperator operator, ConditionContext conditionContext) {
-        queryBuilder.queryContext.getConditionsContext().addConditionContext(operator, conditionContext);
+    // --------------------------------------------------------------------------------------------------------
+    // Public chain API + Utilities
+    // --------------------------------------------------------------------------------------------------------
+
+    public ConditionsConfigurer<T> chain() {
+        return chain(ConditionChainOperator.AND);
     }
+
+    public ConditionsConfigurer<T> and() {
+        end();
+        chain();
+        return this;
+    }
+
+    public ConditionsConfigurer<T> or() {
+        end();
+        chain(ConditionChainOperator.OR);
+        return this;
+    }
+
+    public ConditionsConfigurer<T> end() {
+        if (currentConditionChain.getChain().size() == 0) {
+            throw new IllegalStateException("Cannot close a chain without conditions");
+        }
+        conditionChainHierarchy.remove(currentConditionChain);
+        currentConditionChain = conditionChainHierarchy.get(conditionChainHierarchy.size() - 1);
+        return this;
+    }
+
+    private ConditionsConfigurer<T> chain(ConditionChainOperator chainOperator) {
+        QueryConditionChain newChain = new DefaultQueryConditionChain();
+        conditionChainHierarchy.add(newChain);
+        addCondition(chainOperator, newChain);
+        currentConditionChain = newChain;
+        return this;
+    }
+
+    // --------------------------------------------------------------------------------------------------------
+    // Public conditions API
+    // --------------------------------------------------------------------------------------------------------
+
+    public ConditionsConfigurer<T> eq(String columnName, Object value) {
+        return andEq(columnName, value);
+    }
+    public ConditionsConfigurer<T> notEq(String columnName, Object value) {
+        return andNotEq(columnName, value);
+    }
+    public ConditionsConfigurer<T> like(String columnName, Object value) {
+        return andLike(columnName, value);
+    }
+    public ConditionsConfigurer<T> notLike(String columnName, Object value) {
+        return andNotLike(columnName, value);
+    }
+    public ConditionsConfigurer<T> andEq(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.AND, columnName, ConditionOperator.EQUALS, value);
+    }
+    public ConditionsConfigurer<T> andNotEq(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.AND, columnName, ConditionOperator.NOT_EQUALS, value);
+    }
+    public ConditionsConfigurer<T> andLike(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.AND, columnName, ConditionOperator.LIKE, value);
+    }
+    public ConditionsConfigurer<T> andNotLike(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.AND, columnName, ConditionOperator.NOT_LIKE, value);
+    }
+    public ConditionsConfigurer<T> orEq(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.OR, columnName, ConditionOperator.EQUALS, value);
+    }
+    public ConditionsConfigurer<T> orNotEq(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.OR, columnName, ConditionOperator.NOT_EQUALS, value);
+    }
+    public ConditionsConfigurer<T> orLike(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.OR, columnName, ConditionOperator.LIKE, value);
+    }
+    public ConditionsConfigurer<T> orNotLike(String columnName, Object value) {
+        return createSimpleCondition(ConditionChainOperator.OR, columnName, ConditionOperator.NOT_LIKE, value);
+    }
+
+    public EntityBasedQuery<T> endConditions() {
+        return this.queryBuilder;
+    }
+
+    // --------------------------------------------------------------------------------------------------------
+    // Global utility methods
+    // --------------------------------------------------------------------------------------------------------
 
     @SuppressWarnings("unchecked")
     private void checkValueType(ColumnDescriptor descriptor, Object value) {
@@ -37,7 +131,7 @@ public class ConditionsConfigurer<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private ConditionsConfigurer<T> createSimpleCondition(ConditionsOperator conditionsOperator, String columnName,
+    private ConditionsConfigurer<T> createSimpleCondition(ConditionChainOperator chainOperator, String columnName,
                                                           ConditionOperator operator, Object value) {
         Optional<ColumnDescriptor> columnDescriptorOptional =
                 queryBuilder.entityDescriptor.getColumnDescriptorByColumn(columnName);
@@ -46,54 +140,27 @@ public class ConditionsConfigurer<T> {
         }
         ColumnDescriptor columnDescriptor = columnDescriptorOptional.get();
         checkValueType(columnDescriptor, value);
-        ConditionContext conditionContext = new BaseConditionContext(operator);
-        conditionContext.addFirstExpression(new BaseTableColumnContext(queryBuilder.getFirstEntityDescriptorAlias(),
-                queryBuilder.entityDescriptor.getTableName(), columnDescriptor.getColumnName(),
-                columnDescriptor.getColumnType()));
-        conditionContext.addCompareExpression(new BaseConstantContext(
-                columnDescriptor.getTypeManager().convertToDatabase(value), columnDescriptor.getColumnType()));
-        addCondition(conditionsOperator, conditionContext);
+
+        QueryConditionChain conditionChain = new DefaultQueryConditionWrapper(
+                new DefaultAliasTableColumnExpression(
+                        columnDescriptor.getColumnType(),
+                        new DefaultAliasTableExpression(
+                                queryBuilder.entityDescriptor.getTableName(),
+                                queryBuilder.getFirstEntityDescriptorAlias()),
+                        columnDescriptor.getColumnName()),
+                operator,
+                new DefaultConstantExpression(
+                        columnDescriptor.getColumnType(),
+                        columnDescriptor.getTypeManager().convertToDatabase(value)));
+        addCondition(chainOperator, conditionChain);
         return this;
     }
 
-    public ConditionsConfigurer<T> eq(String columnName, Object value) {
-        return andEq(columnName, value);
-    }
-    public ConditionsConfigurer<T> notEq(String columnName, Object value) {
-        return andNotEq(columnName, value);
-    }
-    public ConditionsConfigurer<T> like(String columnName, Object value) {
-        return andLike(columnName, value);
-    }
-    public ConditionsConfigurer<T> notLike(String columnName, Object value) {
-        return andNotLike(columnName, value);
-    }
-    public ConditionsConfigurer<T> andEq(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.EQUALS, value);
-    }
-    public ConditionsConfigurer<T> andNotEq(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.NOT_EQUALS, value);
-    }
-    public ConditionsConfigurer<T> andLike(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.LIKE, value);
-    }
-    public ConditionsConfigurer<T> andNotLike(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.AND, columnName, ConditionOperator.NOT_LIKE, value);
-    }
-    public ConditionsConfigurer<T> orEq(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.EQUALS, value);
-    }
-    public ConditionsConfigurer<T> orNotEq(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.NOT_EQUALS, value);
-    }
-    public ConditionsConfigurer<T> orLike(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.LIKE, value);
-    }
-    public ConditionsConfigurer<T> orNotLike(String columnName, Object value) {
-        return createSimpleCondition(ConditionsOperator.OR, columnName, ConditionOperator.NOT_LIKE, value);
-    }
-
-    public EntityBasedQuery<T> end() {
-        return this.queryBuilder;
+    private void addCondition(ConditionChainOperator chainOperator, QueryConditionChain conditionChain) {
+        if (currentConditionChain.getChain().size() == 0) {
+            currentConditionChain.addCondition(conditionChain);
+        } else {
+            currentConditionChain.addCondition(chainOperator, conditionChain);
+        }
     }
 }
