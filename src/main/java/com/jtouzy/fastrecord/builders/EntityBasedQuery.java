@@ -10,21 +10,24 @@ import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityNotFoundException;
 import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.reflect.ResultSetObjectMaker;
-import com.jtouzy.fastrecord.statements.context.BaseAliasTableColumnContext;
-import com.jtouzy.fastrecord.statements.context.BaseConditionContext;
-import com.jtouzy.fastrecord.statements.context.BaseJoinContext;
-import com.jtouzy.fastrecord.statements.context.BaseQueryContext;
-import com.jtouzy.fastrecord.statements.context.BaseTableAliasContext;
-import com.jtouzy.fastrecord.statements.context.BaseTableColumnContext;
-import com.jtouzy.fastrecord.statements.context.ConditionContext;
-import com.jtouzy.fastrecord.statements.context.ConditionOperator;
-import com.jtouzy.fastrecord.statements.context.ConditionsOperator;
-import com.jtouzy.fastrecord.statements.context.JoinOperator;
-import com.jtouzy.fastrecord.statements.context.QueryContext;
-import com.jtouzy.fastrecord.statements.context.TableAliasContext;
+import com.jtouzy.fastrecord.statements.context2.ConditionChainOperator;
+import com.jtouzy.fastrecord.statements.context2.ConditionOperator;
+import com.jtouzy.fastrecord.statements.context2.JoinOperator;
+import com.jtouzy.fastrecord.statements.context2.QueryConditionChain;
+import com.jtouzy.fastrecord.statements.context2.QueryExpression;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryColumnExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionChain;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryConditionWrapper;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryExpression;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryTargetExpressionJoin;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultQueryTargetExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context2.impl.DefaultSimpleTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
-import com.jtouzy.fastrecord.statements.writers.WriterCache;
+import com.jtouzy.fastrecord.statements.writers2.Writer;
+import com.jtouzy.fastrecord.statements.writers2.WriterCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +94,7 @@ public class EntityBasedQuery<T> {
     /**
      * Global QueryContext of this query.
      */
-    QueryContext queryContext;
+    QueryExpression queryContext;
     /**
      * Conditions API Helper to build query conditions.
      */
@@ -313,8 +316,10 @@ public class EntityBasedQuery<T> {
      */
     private void createQueryContextWithEntity() {
         String firstEntityDescriptorAlias = registerAlias(entityDescriptor);
-        queryContext = new BaseQueryContext(
-                new BaseTableAliasContext(firstEntityDescriptorAlias, entityDescriptor.getTableName()));
+        queryContext = new DefaultQueryExpression(
+                new DefaultQueryTargetExpressionWrapper(
+                        firstEntityDescriptorAlias,
+                        new DefaultSimpleTableExpression(entityDescriptor.getTableName())));
         createBaseEntityDescriptorContext(firstEntityDescriptorAlias);
     }
 
@@ -340,11 +345,14 @@ public class EntityBasedQuery<T> {
     private void createEntityDescriptorContext(String tableAlias, ColumnDescriptor columnDescriptor,
                                                JoinOperator joinOperator, EntityDescriptor entityDescriptor) {
         createQueryColumnsWithEntity(tableAlias, columnDescriptor, entityDescriptor);
-        TableAliasContext tableAliasContext = new BaseTableAliasContext(tableAlias, entityDescriptor.getTableName());
         if (joinOperator != null) {
-            queryContext.getJoinListContext().addJoinContext(
-                    new BaseJoinContext(queryContext.getJoinListContext().getMainTableContext(),
-                            joinOperator, tableAliasContext));
+            queryContext.getTargetJoinList().add(
+                    new DefaultQueryTargetExpressionJoin(
+                            queryContext.getMainTargetExpression(),
+                            joinOperator,
+                            new DefaultQueryTargetExpressionWrapper(
+                                    tableAlias,
+                                    new DefaultSimpleTableExpression(entityDescriptor.getTableName()))));
         }
     }
 
@@ -366,9 +374,13 @@ public class EntityBasedQuery<T> {
                 continue;
             }
             columnAlias = tableAlias + FastRecordConstants.COLUMN_ALIAS_SEPARATOR + columnDescriptor.getColumnName();
-            queryContext.addColumnContext(new BaseAliasTableColumnContext(columnAlias, tableAlias,
-                    entityDescriptor.getTableName(), columnDescriptor.getColumnName(),
-                    columnDescriptor.getColumnType()));
+            queryContext.getColumns().add(
+                    new DefaultQueryColumnExpressionWrapper(
+                            columnAlias,
+                            new DefaultAliasTableColumnExpression(
+                                    columnDescriptor.getColumnType(),
+                                    new DefaultAliasTableExpression(entityDescriptor.getTableName(), tableAlias),
+                                    columnDescriptor.getColumnName())));
         }
     }
 
@@ -475,7 +487,13 @@ public class EntityBasedQuery<T> {
         // Find the related Entity ID columns
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
         ColumnDescriptor associatedColumnDescriptor;
-        ConditionContext condition;
+        QueryConditionChain conditionChain = new DefaultQueryConditionChain();
+        if (queryContext.getConditionChain().getChain().size() == 0) {
+            queryContext.getConditionChain().addCondition(conditionChain);
+        } else {
+            queryContext.getConditionChain().addCondition(ConditionChainOperator.AND, conditionChain);
+        }
+        QueryConditionChain condition;
         List<ColumnDescriptor> associatedColumnDescriptors;
         // Iterate over the related Entity ID columns
         for (ColumnDescriptor relatedIdColumn : idColumns) {
@@ -497,12 +515,17 @@ public class EntityBasedQuery<T> {
             }
             // Condition creation
             columnDescriptorAliasMapping.put(originAlias, associatedColumnDescriptor, tableAlias);
-            condition = new BaseConditionContext(ConditionOperator.EQUALS);
-            condition.addFirstExpression(new BaseTableColumnContext(originAlias, entityDescriptorOrigin.getTableName(),
-                    associatedColumnDescriptor.getColumnName(), associatedColumnDescriptor.getColumnType()));
-            condition.addCompareExpression(new BaseTableColumnContext(tableAlias, relatedDescriptor.getTableName(),
-                    relatedIdColumn.getColumnName(), relatedIdColumn.getColumnType()));
-            queryContext.getConditionsContext().addConditionContext(ConditionsOperator.AND, condition);
+            condition = new DefaultQueryConditionWrapper(
+                    new DefaultAliasTableColumnExpression(
+                            associatedColumnDescriptor.getColumnType(),
+                            new DefaultAliasTableExpression(entityDescriptorOrigin.getTableName(), originAlias),
+                            associatedColumnDescriptor.getColumnName()),
+                    ConditionOperator.EQUALS,
+                    new DefaultAliasTableColumnExpression(
+                            relatedIdColumn.getColumnType(),
+                            new DefaultAliasTableExpression(relatedDescriptor.getTableName(), tableAlias),
+                            relatedIdColumn.getColumnName()));
+            conditionChain.addCondition(condition);
         }
     }
 
@@ -525,7 +548,9 @@ public class EntityBasedQuery<T> {
      * @return SQLMetadata created based on this query
      */
     private DbReadyStatementMetadata writeMetadata() {
-        return writerCache.getWriter(queryContext).write();
+        Writer<QueryExpression> writer = writerCache.getWriter(queryContext);
+        writer.write();
+        return writer.getResult();
     }
 
     // ---------------------------------------------------------------------------------------------

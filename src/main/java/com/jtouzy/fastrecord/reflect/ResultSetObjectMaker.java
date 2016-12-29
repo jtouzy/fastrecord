@@ -5,7 +5,7 @@ import com.google.common.collect.Table;
 import com.jtouzy.fastrecord.config.FastRecordConstants;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
-import com.jtouzy.fastrecord.statements.context.QueryContext;
+import com.jtouzy.fastrecord.statements.context2.QueryExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,12 +20,12 @@ import java.util.Map;
 
 public class ResultSetObjectMaker<T> {
     private static final Logger logger = LoggerFactory.getLogger(ResultSetObjectMaker.class);
-    private final QueryContext queryContext;
+    private final QueryExpression queryContext;
     private final ResultSet resultSet;
     private final Map<String,EntityDescriptor> entityDescriptorsByAlias;
     private final Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping;
 
-    public ResultSetObjectMaker(QueryContext queryContext, Map<String,EntityDescriptor> entityDescriptorsByAlias,
+    public ResultSetObjectMaker(QueryExpression queryContext, Map<String,EntityDescriptor> entityDescriptorsByAlias,
                                 Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping, ResultSet resultSet) {
         this.queryContext = queryContext;
         this.entityDescriptorsByAlias = entityDescriptorsByAlias;
@@ -41,7 +41,7 @@ public class ResultSetObjectMaker<T> {
             Map<String,Object> rowValuesMap;
 
             logger.debug("Start creating result objects...");
-            String mainTableAlias = queryContext.getJoinListContext().getMainTableContext().getTableAlias();
+            String mainTableAlias = queryContext.getMainTargetExpression().getAlias();
             while (resultSet.next()) {
                 // Stores all the ResultSet row values in a HashMap to avoid multiple
                 // loops over the resultSet columns during the object creation
