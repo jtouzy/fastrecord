@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 @Writes(UpdateExpression.class)
-public class DefaultUpdateExpressionWriter extends AbstractWriter<UpdateExpression> {
+public class DefaultUpdateExpressionWriter extends AbstractConditionChainHolderWriter<UpdateExpression> {
     @Override
     public void write() {
         DbReadyStatementMetadata metadata = getResult();
@@ -29,9 +29,6 @@ public class DefaultUpdateExpressionWriter extends AbstractWriter<UpdateExpressi
                 metadata.getSqlString().append(", ");
             }
         }
-        if (getContext().getConditionChain().getChain().size() > 0) {
-            metadata.getSqlString().append(" WHERE ");
-            mergeWriter(getContext().getConditionChain());
-        }
+        writeConditions();
     }
 }

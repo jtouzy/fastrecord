@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Writes(QueryExpression.class)
-public class DefaultQueryExpressionWriter extends AbstractWriter<QueryExpression> {
+public class DefaultQueryExpressionWriter extends AbstractConditionChainHolderWriter<QueryExpression> {
     @Override
     public void write() {
         DbReadyStatementMetadata metadata = getResult();
@@ -32,10 +32,7 @@ public class DefaultQueryExpressionWriter extends AbstractWriter<QueryExpression
             appendJoinsFrom(getContext().getMainTargetExpression().getAlias());
         }
         // Query conditions
-        if (getContext().getConditionChain().getChain().size() > 0) {
-            metadata.getSqlString().append(" WHERE ");
-            mergeWriter(getContext().getConditionChain());
-        }
+        writeConditions();
     }
 
     private void appendJoinsFrom(String alias) {
