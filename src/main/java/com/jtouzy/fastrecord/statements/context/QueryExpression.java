@@ -6,7 +6,7 @@ import java.util.List;
  * SQL query expression.
  */
 public interface QueryExpression
-        extends NativeExpression, ConditionExpression, QueryColumnExpression, QueryTargetExpression {
+        extends NativeExpression, ConditionExpression, QueryColumnExpression, QueryTargetExpression, UpdateValueExpression {
     /**
      * Get SQL query columns (SELECT clause).
      *

@@ -7,18 +7,12 @@ import com.jtouzy.fastrecord.statements.context.SimpleTableExpression;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DefaultInsertExpression implements InsertExpression {
-    private final SimpleTableExpression target;
+public class DefaultInsertExpression extends AbstractWriteExpression implements InsertExpression {
     private final Map<SimpleTableColumnExpression,String> values;
 
     public DefaultInsertExpression(SimpleTableExpression target) {
-        this.target = target;
-        this.values = new LinkedHashMap<>();
-    }
-
-    @Override
-    public SimpleTableExpression getTarget() {
-        return target;
+        super(target);
+        values = new LinkedHashMap<>();
     }
 
     @Override
