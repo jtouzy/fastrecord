@@ -329,7 +329,8 @@ public class EntityBasedQuery<T> {
      * @param tableAlias Alias of the base EntityDescriptor in the query
      */
     private void createBaseEntityDescriptorContext(String tableAlias) {
-        createEntityDescriptorContext(tableAlias, null, null, entityDescriptor);
+        createEntityDescriptorContext(tableAlias, entityDescriptor,
+                null, null, null, null);
     }
 
     /**
@@ -341,13 +342,18 @@ public class EntityBasedQuery<T> {
      * @param joinOperator Join operator if the EntityDescriptor is a filled one, null otherwise (base class)
      * @param entityDescriptor EntityDescriptor to create context with
      */
-    private void createEntityDescriptorContext(String tableAlias, ColumnDescriptor columnDescriptor,
-                                               JoinOperator joinOperator, EntityDescriptor entityDescriptor) {
+    private void createEntityDescriptorContext(String tableAlias, EntityDescriptor entityDescriptor,
+                                               String originAlias, EntityDescriptor originEntityDescriptor,
+                                               ColumnDescriptor columnDescriptor, JoinOperator joinOperator) {
         createQueryColumnsWithEntity(tableAlias, columnDescriptor, entityDescriptor);
         if (joinOperator != null) {
             queryContext.getTargetJoinList().add(
                     new DefaultQueryTargetExpressionJoin(
-                            queryContext.getMainTargetExpression(),
+                            originEntityDescriptor.equals(this.entityDescriptor) ?
+                                    queryContext.getMainTargetExpression() :
+                                    new DefaultQueryTargetExpressionWrapper(
+                                            originAlias,
+                                            new DefaultSimpleTableExpression(originEntityDescriptor.getTableName())),
                             joinOperator,
                             new DefaultQueryTargetExpressionWrapper(
                                     tableAlias,
@@ -420,7 +426,8 @@ public class EntityBasedQuery<T> {
         String originAlias = originAliasOptional.get();
         for (ColumnDescriptor columnDescriptor : columnsRelatedToFilled) {
             tableAlias = registerAlias(relatedDescriptor);
-            createEntityDescriptorContext(tableAlias, columnDescriptor, JoinOperator.JOIN, relatedDescriptor);
+            createEntityDescriptorContext(tableAlias, relatedDescriptor,
+                    originAlias, descriptor, columnDescriptor, JoinOperator.JOIN);
             addSimpleJoinConditions(originAlias, descriptor, tableAlias, relatedDescriptor, columnDescriptor);
         }
         return this;
