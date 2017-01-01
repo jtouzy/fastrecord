@@ -1,7 +1,7 @@
 package com.jtouzy.fastrecord.repositories;
 
 import com.jtouzy.fastrecord.builders.EntityBasedQuery;
-import com.jtouzy.fastrecord.builders.Query;
+import com.jtouzy.fastrecord.builders.Statement;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.lifecycle.FastRecordInitializedEvent;
@@ -14,6 +14,9 @@ import java.util.Optional;
 public abstract class BaseRepository<T> implements Repository<T> {
     @Autowired
     private EntityPool entityPool;
+    @Autowired
+    protected Statement statementProcessor;
+
     protected final Class<T> entityClass;
     protected EntityDescriptor entityDescriptor;
 
@@ -33,7 +36,7 @@ public abstract class BaseRepository<T> implements Repository<T> {
 
     @Override
     public List<T> findAll() {
-        return improveQuery(Query.from(entityClass)).findAll();
+        return improveQuery(statementProcessor.queryFrom(entityClass)).findAll();
     }
 
     protected EntityBasedQuery<T> improveQuery(EntityBasedQuery<T> query) {

@@ -1,7 +1,6 @@
 package com.jtouzy.fastrecord.repositories;
 
 import com.jtouzy.fastrecord.builders.EntityBasedQuery;
-import com.jtouzy.fastrecord.builders.Query;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 
 import java.util.Iterator;
@@ -14,7 +13,7 @@ public abstract class BaseMultipleIdRepository<T> extends BaseRepository<T> impl
 
     @Override
     public Optional<T> findById(Object... ids) {
-        EntityBasedQuery<T> query = improveQuery(Query.from(entityClass));
+        EntityBasedQuery<T> query = improveQuery(statementProcessor.queryFrom(entityClass));
         int index = 0;
         ColumnDescriptor columnDescriptor;
         for (Iterator<ColumnDescriptor> it = entityDescriptor.getIdColumnDescriptors().iterator(); it.hasNext(); ++ index) {
