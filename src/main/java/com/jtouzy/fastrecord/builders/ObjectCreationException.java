@@ -1,4 +1,4 @@
-package com.jtouzy.fastrecord.reflect;
+package com.jtouzy.fastrecord.builders;
 
 public class ObjectCreationException extends RuntimeException {
     public ObjectCreationException(Throwable cause) {

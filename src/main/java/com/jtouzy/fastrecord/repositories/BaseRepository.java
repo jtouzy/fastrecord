@@ -1,6 +1,6 @@
 package com.jtouzy.fastrecord.repositories;
 
-import com.jtouzy.fastrecord.builders.EntityBasedQuery;
+import com.jtouzy.fastrecord.builders.EntityQueryProcessor;
 import com.jtouzy.fastrecord.builders.Statement;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
@@ -39,7 +39,7 @@ public abstract class BaseRepository<T> implements Repository<T> {
         return improveQuery(statementProcessor.queryFrom(entityClass)).findAll();
     }
 
-    protected EntityBasedQuery<T> improveQuery(EntityBasedQuery<T> query) {
+    protected EntityQueryProcessor<T> improveQuery(EntityQueryProcessor<T> query) {
         return query;
     }
 }

@@ -1,4 +1,4 @@
-package com.jtouzy.fastrecord.reflect;
+package com.jtouzy.fastrecord.builders;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;

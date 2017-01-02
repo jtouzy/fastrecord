@@ -14,9 +14,21 @@ public class Statement {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> EntityBasedQuery<T> queryFrom(Class<T> entityClass) {
-        EntityBasedQuery<T> entityBasedQuery = applicationContext.getBean(EntityBasedQuery.class);
-        entityBasedQuery.fromClass(entityClass);
-        return entityBasedQuery;
+    public <T> EntityQueryProcessor<T> queryFrom(Class<T> entityClass) {
+        EntityQueryProcessor<T> entityQueryProcessor = applicationContext.getBean(EntityQueryProcessor.class);
+        entityQueryProcessor.init(entityClass);
+        return entityQueryProcessor;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> EntityInsertProcessor<T> insert(T target) {
+        return insert((Class<T>)target.getClass(), target);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> EntityInsertProcessor<T> insert(Class<T> entityClass, T target) {
+        EntityInsertProcessor<T> entityWriteProcessor = applicationContext.getBean(EntityInsertProcessor.class);
+        entityWriteProcessor.init(entityClass, target);
+        return entityWriteProcessor;
     }
 }

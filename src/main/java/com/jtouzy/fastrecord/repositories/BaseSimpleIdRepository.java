@@ -1,6 +1,6 @@
 package com.jtouzy.fastrecord.repositories;
 
-import com.jtouzy.fastrecord.builders.EntityBasedQuery;
+import com.jtouzy.fastrecord.builders.EntityQueryProcessor;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.lifecycle.FastRecordInitializedEvent;
 
@@ -23,7 +23,7 @@ public abstract class BaseSimpleIdRepository<T,ID> extends BaseRepository<T> imp
 
     @Override
     public Optional<T> findById(ID id) {
-        EntityBasedQuery<T> query = improveQuery(statementProcessor.queryFrom(entityClass));
+        EntityQueryProcessor<T> query = improveQuery(statementProcessor.queryFrom(entityClass));
         ColumnDescriptor descriptor = entityDescriptor.getIdColumnDescriptors().get(0);
         query.conditions().eq(descriptor.getColumnName(), id);
         return query.findFirst();

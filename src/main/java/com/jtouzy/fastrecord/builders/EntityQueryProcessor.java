@@ -6,9 +6,8 @@ import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityDefinitionException;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
-import com.jtouzy.fastrecord.entity.EntityNotFoundException;
 import com.jtouzy.fastrecord.entity.EntityPool;
-import com.jtouzy.fastrecord.reflect.ResultSetObjectMaker;
+import com.jtouzy.fastrecord.statements.context.ConditionChain;
 import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionOperator;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
@@ -16,6 +15,7 @@ import com.jtouzy.fastrecord.statements.context.QueryConditionChain;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryColumnExpressionWrapper;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionChain;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionWrapper;
@@ -25,23 +25,18 @@ import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryTargetExpressio
 import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
-import com.jtouzy.fastrecord.statements.writers.Writer;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -49,109 +44,37 @@ import java.util.Optional;
  *
  * @param <T> Entity class
  */
-@Service("FastRecord.Core.EntityBasedQuery")
+@Service("FastRecord.Core.EntityQueryProcessor")
 @Scope("prototype")
-public class EntityBasedQuery<T> {
+public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, QueryExpression> {
+
+    // ---------------------------------------------------------------------------------------------
+    // Static final properties
+    // ---------------------------------------------------------------------------------------------
+
     /**
      * Logger instance.
      */
-    private static final Logger logger = LoggerFactory.getLogger(EntityBasedQuery.class);
-
-    // ---------------------------------------------------------------------------------------------
-    // Injected properties
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * EntityPool instance.
-     */
-    @Autowired
-    private EntityPool entityPool;
-    /**
-     * WriterCache for this QueryContext.
-     */
-    @Autowired
-    private WriterCache writerCache;
-    /**
-     * DataSource used to get a database Connection.
-     */
-    @Autowired
-    private DataSource dataSource;
-    /**
-     * FastRecord configuration.
-     */
-    @Autowired
-    private FastRecordConfiguration configuration;
-
-    // ---------------------------------------------------------------------------------------------
-    // Metadata and tools properties
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * EntityDescriptor of the base class in this query.
-     */
-    EntityDescriptor entityDescriptor;
-    /**
-     * Global QueryContext of this query.
-     */
-    QueryExpression queryContext;
-    /**
-     * Conditions API Helper to build query conditions.
-     */
-    private ConditionsConfigurer<T> conditionsConfigurer;
+    private static final Logger logger = LoggerFactory.getLogger(EntityQueryProcessor.class);
 
     // ---------------------------------------------------------------------------------------------
     // Working properties
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * Mapping between EntityDescriptors in the query context and their alias
-     */
-    private Map<String,EntityDescriptor> entityDescriptorsByAlias;
-    /**
      * Mapping between ColumnDescriptors which are related to another Entities filled in the query.
      * The table row is the origin table alias, the column is the ColumnDescriptor instance, and
      * the final key is the related EntityDescriptor's alias.
      */
-    private Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping;
+    private final Table<String,ColumnDescriptor,String> columnDescriptorAliasMapping;
 
     // ---------------------------------------------------------------------------------------------
     // Constructors
     // ---------------------------------------------------------------------------------------------
 
-    /**
-     * Private constructor.
-     * The only method to instantiate the EntityBasedQuery is to use Query.from() static method.
-     */
-    private EntityBasedQuery() {
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    // Protected (package used)
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * Initialization method.
-     * This method is called when Query.from() is called.
-     *
-     * @param entityClass The Entity class target of the query
-     */
-    void fromClass(Class<T> entityClass) {
-        this.entityDescriptor = findEntityDescriptorWithClass(entityClass);
-        initializeContext();
-    }
-
-    /**
-     * Get the base EntityDescriptor alias
-     *
-     * @return First EntityDescriptor alias (base class of the Query)
-     */
-    String getFirstEntityDescriptorAlias() {
-        Optional<String> optionalAlias = findEntityDescriptorAlias(entityDescriptor);
-        if (!optionalAlias.isPresent()) {
-            // This must never appear
-            throw new IllegalStateException("First EntityDescriptor does not have an alias!");
-        }
-        return optionalAlias.get();
+    public EntityQueryProcessor(EntityPool entityPool, WriterCache writerCache, FastRecordConfiguration configuration) {
+        super(entityPool, writerCache, configuration);
+        this.columnDescriptorAliasMapping = HashBasedTable.create();
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -168,7 +91,7 @@ public class EntityBasedQuery<T> {
      * @param filledEntityClass Class related to the base class of the query
      * @return QueryAPI object
      */
-    public EntityBasedQuery<T> fill(Class filledEntityClass) {
+    public EntityQueryProcessor<T> fill(Class filledEntityClass) {
         return fill(filledEntityClass, null);
     }
 
@@ -185,8 +108,8 @@ public class EntityBasedQuery<T> {
      * @param propertyName Name of the property to get the related Entity from the base class
      * @return QueryAPI object
      */
-    public EntityBasedQuery<T> fill(Class filledEntityClass, String propertyName) {
-        return fillFrom(entityDescriptor, filledEntityClass, propertyName);
+    public EntityQueryProcessor<T> fill(Class filledEntityClass, String propertyName) {
+        return fillFrom(getEntityDescriptor(), filledEntityClass, propertyName);
     }
 
     /**
@@ -199,7 +122,7 @@ public class EntityBasedQuery<T> {
      * @param filledEntityClass Class related to the origin class
      * @return QueryAPI object
      */
-    public EntityBasedQuery<T> fillFrom(Class originEntityClass, Class filledEntityClass) {
+    public EntityQueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass) {
         return fillFrom(originEntityClass, filledEntityClass, null);
     }
 
@@ -216,22 +139,14 @@ public class EntityBasedQuery<T> {
      * @param propertyName Name of the property to get the related Entity from the origin class
      * @return QueryAPI object
      */
-    public EntityBasedQuery<T> fillFrom(Class originEntityClass, Class filledEntityClass, String propertyName) {
+    public EntityQueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass, String propertyName) {
         return fillFrom(findEntityDescriptorWithClass(originEntityClass), filledEntityClass, propertyName);
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // Public API : Conditions
-    // ---------------------------------------------------------------------------------------------
-
-    /**
-     * Getter to access the Public Conditions API to add conditions to the request.
-     * To get back to the Query API, use <code>end()</code> method on the Conditions API.
-     *
-     * @return The ConditionsConfigurer to manage conditions on the query
-     */
-    public ConditionsConfigurer<T> conditions() {
-        return conditionsConfigurer;
+    @Override
+    @SuppressWarnings("unchecked")
+    public QueryConditionsConfigurer conditions() {
+        return (QueryConditionsConfigurer)conditionsConfigurer;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -257,7 +172,7 @@ public class EntityBasedQuery<T> {
     public List<T> findAll() {
         ResultSet rs;
         try {
-            Connection connection = dataSource.getConnection();
+            Connection connection = getDataSource().getConnection();
             DbReadyStatementMetadata metadata = writeMetadata();
             String sqlString = metadata.getSqlString().toString();
             printSql(metadata);
@@ -271,8 +186,8 @@ public class EntityBasedQuery<T> {
         } catch (SQLException ex) {
             throw new QueryException(ex);
         }
-        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(configuration, queryContext,
-                entityDescriptorsByAlias, columnDescriptorAliasMapping, rs);
+        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(getConfiguration(), expression,
+                getEntityDescriptorsByAlias(), columnDescriptorAliasMapping, rs);
         return objectMaker.make();
     }
 
@@ -302,35 +217,16 @@ public class EntityBasedQuery<T> {
      * ColumnDescriptor/alias mapping for related entities.
      * Creates the default base QueryContext.
      */
-    private void initializeContext() {
-        this.entityDescriptorsByAlias = new LinkedHashMap<>();
-        this.columnDescriptorAliasMapping = HashBasedTable.create();
-        createQueryContextWithEntity();
-        this.conditionsConfigurer = new ConditionsConfigurer<>(this);
-    }
-
-    /**
-     * Create the base QueryContext of this query.
-     * Create the first alias for the base EntityDescriptor, the first SELECT columns and FROM context.
-     */
-    private void createQueryContextWithEntity() {
-        String firstEntityDescriptorAlias = registerAlias(entityDescriptor);
-        queryContext = new DefaultQueryExpression(
+    @Override
+    protected void initializeContext() {
+        String firstEntityDescriptorAlias = registerAlias(getEntityDescriptor());
+        expression = new DefaultQueryExpression(
                 new DefaultQueryTargetExpressionWrapper(
                         firstEntityDescriptorAlias,
-                        new DefaultSimpleTableExpression(entityDescriptor.getTableName())));
-        createBaseEntityDescriptorContext(firstEntityDescriptorAlias);
-    }
-
-    /**
-     * Create an EntityDescriptor context (of the base class) in the query context.
-     * The SELECT columns context and the FROM context are created.
-     *
-     * @param tableAlias Alias of the base EntityDescriptor in the query
-     */
-    private void createBaseEntityDescriptorContext(String tableAlias) {
-        createEntityDescriptorContext(tableAlias, entityDescriptor,
+                        new DefaultSimpleTableExpression(getEntityDescriptor().getTableName())));
+        createEntityDescriptorContext(firstEntityDescriptorAlias, getEntityDescriptor(),
                 null, null, null, null);
+        conditionsConfigurer = new QueryConditionsConfigurer(expression.getConditionChain());
     }
 
     /**
@@ -347,10 +243,10 @@ public class EntityBasedQuery<T> {
                                                ColumnDescriptor columnDescriptor, JoinOperator joinOperator) {
         createQueryColumnsWithEntity(tableAlias, columnDescriptor, entityDescriptor);
         if (joinOperator != null) {
-            queryContext.getTargetJoinList().add(
+            expression.getTargetJoinList().add(
                     new DefaultQueryTargetExpressionJoin(
-                            originEntityDescriptor.equals(this.entityDescriptor) ?
-                                    queryContext.getMainTargetExpression() :
+                            originEntityDescriptor.equals(getEntityDescriptor()) ?
+                                    expression.getMainTargetExpression() :
                                     new DefaultQueryTargetExpressionWrapper(
                                             originAlias,
                                             new DefaultSimpleTableExpression(originEntityDescriptor.getTableName())),
@@ -378,8 +274,8 @@ public class EntityBasedQuery<T> {
             if (columnToFillDescriptor != null && columnDescriptor.equals(columnToFillDescriptor.getRelatedColumn())) {
                 continue;
             }
-            columnAlias = tableAlias + configuration.getColumnAliasSeparator() + columnDescriptor.getColumnName();
-            queryContext.getColumns().add(
+            columnAlias = tableAlias + getConfiguration().getColumnAliasSeparator() + columnDescriptor.getColumnName();
+            expression.getColumns().add(
                     new DefaultQueryColumnExpressionWrapper(
                             columnAlias,
                             new DefaultAliasTableColumnExpression(
@@ -406,7 +302,7 @@ public class EntityBasedQuery<T> {
      * @param propertyName Name of the property to get the related Entity from the origin class
      * @return QueryAPI object
      */
-    private EntityBasedQuery<T> fillFrom(EntityDescriptor descriptor, Class filledEntityClass, String propertyName) {
+    private EntityQueryProcessor<T> fillFrom(EntityDescriptor descriptor, Class filledEntityClass, String propertyName) {
         // Safe checks
         EntityDescriptor relatedDescriptor = findEntityDescriptorWithClass(filledEntityClass);
         // Columns which represents properties to fill
@@ -431,21 +327,6 @@ public class EntityBasedQuery<T> {
             addSimpleJoinConditions(originAlias, descriptor, tableAlias, relatedDescriptor, columnDescriptor);
         }
         return this;
-    }
-
-    /**
-     * Register an alias on an EntityDescriptor.
-     * This method checks if another same EntityDescriptor is already created in the query context
-     * and increment a counter to create the EntityDescriptor alias.
-     *
-     * @param descriptor EntityDescriptor to create alias with
-     * @return The newly created alias
-     */
-    private String registerAlias(EntityDescriptor descriptor) {
-        long descriptorsCount = entityDescriptorsByAlias.values().stream().filter(d -> d == descriptor).count();
-        String alias = descriptor.getTableName() + String.valueOf(descriptorsCount);
-        entityDescriptorsByAlias.put(alias, descriptor);
-        return alias;
     }
 
     /**
@@ -494,7 +375,7 @@ public class EntityBasedQuery<T> {
         List<ColumnDescriptor> idColumns = relatedDescriptor.getIdColumnDescriptors();
         ColumnDescriptor associatedColumnDescriptor;
         QueryConditionChain conditionChain = new DefaultQueryConditionChain();
-        ConditionsHelper.addCondition(queryContext.getConditionChain(), ConditionChainOperator.AND, conditionChain);
+        ConditionsHelper.addCondition(expression.getConditionChain(), ConditionChainOperator.AND, conditionChain);
         QueryConditionChain condition;
         List<ColumnDescriptor> associatedColumnDescriptors;
         // Iterate over the related Entity ID columns
@@ -531,60 +412,109 @@ public class EntityBasedQuery<T> {
         }
     }
 
-    /**
-     * Print SQL in logger if the configuration enables it.
-     * The property to enable the SQL print is FastRecordConfiguration.PRINT_SQL
-     *
-     * @param metadata SQL metadata to print
-     */
-    private void printSql(DbReadyStatementMetadata metadata) {
-        if (configuration.isPrintSql()) {
-            logger.info("Execute SQL [{}], [{}]", metadata.getSqlString(), metadata.getParameters());
-        }
-    }
-
-    /**
-     * Create the SQLMetadata based on the query context.
-     * All the writing process is called from this method.
-     *
-     * @return SQLMetadata created based on this query
-     */
-    private DbReadyStatementMetadata writeMetadata() {
-        Writer<QueryExpression> writer = writerCache.getWriter(queryContext);
-        writer.write();
-        return writer.getResult();
-    }
-
     // ---------------------------------------------------------------------------------------------
-    // Private utility methods
+    // ConditionsConfigurer inheritance
     // ---------------------------------------------------------------------------------------------
 
-    /**
-     * Find the first alias of a given EntityDescriptor.
-     * An EntityDescriptor may appear multiple times in the entityDescriptor mapping, so this
-     * method is not really helpful in this case. But it can be helpful with simple queries.
-     *
-     * @param descriptor EntityDescriptor origin
-     * @return Alias linked to the EntityDescriptor (optional), or Optional.empty()
-     */
-    private Optional<String> findEntityDescriptorAlias(EntityDescriptor descriptor) {
-        return entityDescriptorsByAlias.entrySet().stream()
-                .filter(e -> e.getValue().equals(descriptor)).map(Map.Entry::getKey).findFirst();
-    }
-
-    /**
-     * Find and check an EntityDescriptor with a given class.
-     * If no EntityDescriptor is related to the given class, an <code>EntityNotFoundException</code> will be thrown.
-     *
-     * @param entityClass Class for searching the EntityDescriptor
-     * @return EntityDescriptor related to the given class
-     */
-    private EntityDescriptor findEntityDescriptorWithClass(Class entityClass) {
-        Optional<EntityDescriptor> entityDescriptorOptional =
-                entityPool.getEntityDescriptor(entityClass);
-        if (!entityDescriptorOptional.isPresent()) {
-            throw new EntityNotFoundException(entityClass);
+    public class QueryConditionsConfigurer extends ConditionsConfigurer {
+        private QueryConditionsConfigurer(ConditionChain parentConditionChain) {
+            super(parentConditionChain);
         }
-        return entityDescriptorOptional.get();
+
+        @Override
+        protected ConditionChain createDefaultConditionChain() {
+            return new DefaultQueryConditionChain();
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected ConditionChain createConditionWrapper(ColumnDescriptor columnDescriptor, ConditionOperator operator, Object value) {
+            return new DefaultQueryConditionWrapper(
+                    new DefaultAliasTableColumnExpression(
+                            columnDescriptor.getColumnType(),
+                            new DefaultAliasTableExpression(
+                                    getProcessor().getEntityDescriptor().getTableName(),
+                                    getProcessor().getFirstEntityDescriptorAlias()),
+                            columnDescriptor.getColumnName()),
+                    operator,
+                    new DefaultConstantExpression(
+                            columnDescriptor.getColumnType(),
+                            columnDescriptor.getTypeManager().convertToDatabase(value)));
+        }
+
+        @Override
+        protected EntityQueryProcessor<T> getProcessor() {
+            return EntityQueryProcessor.this;
+        }
+
+        @Override
+        public EntityQueryProcessor<T> endConditions() {
+            return getProcessor();
+        }
+
+        // --------------------------------------------------------------------------------------------------------
+        // Public conditions API delegates (only to return this instance)
+        // --------------------------------------------------------------------------------------------------------
+
+        @Override
+        public QueryConditionsConfigurer eq(String columnName, Object value) {
+            super.eq(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer notEq(String columnName, Object value) {
+            super.notEq(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer like(String columnName, Object value) {
+            super.like(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer notLike(String columnName, Object value) {
+            super.notLike(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer andEq(String columnName, Object value) {
+            super.andEq(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer andNotEq(String columnName, Object value) {
+            super.andNotEq(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer andLike(String columnName, Object value) {
+            super.andLike(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer andNotLike(String columnName, Object value) {
+            super.andNotLike(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer orEq(String columnName, Object value) {
+            super.orEq(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer orNotEq(String columnName, Object value) {
+            super.orNotEq(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer orLike(String columnName, Object value) {
+            super.orLike(columnName, value);
+            return this;
+        }
+        @Override
+        public ConditionsConfigurer orNotLike(String columnName, Object value) {
+            super.orNotLike(columnName, value);
+            return this;
+        }
     }
 }
