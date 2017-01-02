@@ -1,6 +1,8 @@
 package com.jtouzy.fastrecord.tests.builders;
 
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.tests.metadata.workingEntities.Category;
+import com.jtouzy.fastrecord.tests.metadata.workingEntities.Event;
 import com.jtouzy.fastrecord.tests.metadata.workingEntities.SimpleEvent;
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,5 +38,17 @@ public class QueryBuilderTest extends AbstractBuilderTest {
         Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(0).getType());
         Assert.assertEquals("1", metadata.getParameters().get(1).getValue());
         Assert.assertEquals(Types.INTEGER, metadata.getParameters().get(1).getType());
+    }
+
+    @Test
+    public void simpleJoinQueryBuilderTest() throws Exception {
+        DbReadyStatementMetadata metadata = statementProcessor.queryFrom(Event.class)
+                .fill(Category.class).writeMetadata();
+        Assert.assertEquals("SELECT event0.id as event0$$id, event0.category as event0$$category, " +
+                        "event0.title as event0$$title, category0.title as category0$$title " +
+                        "FROM event event0, category category0 " +
+                        "WHERE ((event0.category = category0.id))",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(0, metadata.getParameters().size());
     }
 }

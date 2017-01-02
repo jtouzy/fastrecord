@@ -61,17 +61,12 @@ public abstract class EntityBasedConditionsProcessor<T,E extends WritableContext
             return EntityBasedConditionsProcessor.this;
         }
 
-        private final List<ConditionChain> conditionChainHierarchy;
+        private List<ConditionChain> conditionChainHierarchy;
+        private ConditionChain parentConditionChain;
         private ConditionChain currentConditionChain;
 
         protected ConditionsConfigurer(ConditionChain parentConditionChain) {
-            conditionChainHierarchy = new ArrayList<>();
-            currentConditionChain = parentConditionChain;
-            ConditionChain rootChain = createDefaultConditionChain();
-            // QueryConditionChain rootChain = new DefaultQueryConditionChain();
-            ConditionsHelper.addCondition(currentConditionChain, ConditionChainOperator.AND, rootChain);
-            currentConditionChain = rootChain;
-            conditionChainHierarchy.add(currentConditionChain);
+            this.parentConditionChain = parentConditionChain;
         }
 
         protected abstract ConditionChain createDefaultConditionChain();
@@ -104,6 +99,7 @@ public abstract class EntityBasedConditionsProcessor<T,E extends WritableContext
         }
 
         private ConditionsConfigurer chain(ConditionChainOperator chainOperator) {
+            initializeIfNeeded();
             QueryConditionChain newChain = new DefaultQueryConditionChain();
             conditionChainHierarchy.add(newChain);
             ConditionsHelper.addCondition(currentConditionChain, chainOperator, newChain);
@@ -177,6 +173,7 @@ public abstract class EntityBasedConditionsProcessor<T,E extends WritableContext
         @SuppressWarnings("unchecked")
         private ConditionsConfigurer createSimpleCondition(ConditionChainOperator chainOperator, String columnName,
                                                            ConditionOperator operator, Object value) {
+            initializeIfNeeded();
             Optional<ColumnDescriptor> columnDescriptorOptional =
                     getProcessor().getEntityDescriptor().getColumnDescriptorByColumn(columnName);
             if (!columnDescriptorOptional.isPresent()) {
@@ -188,6 +185,18 @@ public abstract class EntityBasedConditionsProcessor<T,E extends WritableContext
             ConditionChain wrapper = createConditionWrapper(columnDescriptor, operator, value);
             ConditionsHelper.addCondition(currentConditionChain, chainOperator, wrapper);
             return this;
+        }
+
+        private void initializeIfNeeded() {
+            if (conditionChainHierarchy == null) {
+                conditionChainHierarchy = new ArrayList<>();
+                currentConditionChain = parentConditionChain;
+                ConditionChain rootChain = createDefaultConditionChain();
+                // QueryConditionChain rootChain = new DefaultQueryConditionChain();
+                ConditionsHelper.addCondition(currentConditionChain, ConditionChainOperator.AND, rootChain);
+                currentConditionChain = rootChain;
+                conditionChainHierarchy.add(currentConditionChain);
+            }
         }
     }
 }

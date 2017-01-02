@@ -58,24 +58,26 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
         SimpleTableExpression tableExpression = new DefaultSimpleTableExpression(getEntityDescriptor().getTableName());
         expression = new DefaultInsertExpression(tableExpression);
         for (ColumnDescriptor columnDescriptor : getEntityDescriptor().getColumnDescriptors()) {
-            addInsertValueWithColumn(target, columnDescriptor, tableExpression);
+            addInsertValueWithColumn(target, columnDescriptor, columnDescriptor.getColumnName(), tableExpression);
         }
     }
 
-    private void addInsertValueWithColumn(Object target, ColumnDescriptor columnDescriptor,
+    private void addInsertValueWithColumn(Object target, ColumnDescriptor columnDescriptor, String columnName,
                                           SimpleTableExpression tableExpression) {
         if (target == null) {
             return;
         }
         if (!columnDescriptor.isRelated()) {
-            addInsertValue(target, columnDescriptor, tableExpression);
+            addInsertValue(target, columnDescriptor, columnName, tableExpression);
         } else {
             addInsertValueWithColumn(
-                    getObjectValue(target, columnDescriptor), columnDescriptor.getRelatedColumn(), tableExpression);
+                    getObjectValue(target, columnDescriptor),
+                    columnDescriptor.getRelatedColumn(), columnName, tableExpression);
         }
     }
 
-    private void addInsertValue(Object target, ColumnDescriptor columnDescriptor,
+    @SuppressWarnings("unchecked")
+    private void addInsertValue(Object target, ColumnDescriptor columnDescriptor, String columnName,
                                 SimpleTableExpression tableExpression) {
         Object columnValue = getObjectValue(target, columnDescriptor);
         if (columnValue == null) {
@@ -83,8 +85,8 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
         }
         expression.getValues().put(
                 new DefaultSimpleTableColumnExpression(
-                        columnDescriptor.getColumnType(), tableExpression, columnDescriptor.getColumnName()),
-                String.valueOf(columnValue));
+                        columnDescriptor.getColumnType(), tableExpression, columnName),
+                String.valueOf(columnDescriptor.getTypeManager().convertToDatabase(columnValue)));
     }
 
     private Object getObjectValue(Object target, ColumnDescriptor columnDescriptor) {
