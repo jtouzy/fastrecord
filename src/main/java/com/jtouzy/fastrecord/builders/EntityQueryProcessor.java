@@ -170,25 +170,24 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      * @return All the objects created with the SQL query result
      */
     public List<T> findAll() {
-        ResultSet rs;
-        try {
-            Connection connection = getDataSource().getConnection();
-            DbReadyStatementMetadata metadata = writeMetadata();
-            String sqlString = metadata.getSqlString().toString();
-            printSql(metadata);
-            PreparedStatement preparedStatement = connection.prepareStatement(sqlString);
+        DbReadyStatementMetadata metadata = writeMetadata();
+        String sqlString = metadata.getSqlString().toString();
+        printSql(metadata);
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlString)) {
             int index = 1;
             for (DbReadyStatementParameter parameter : metadata.getParameters()) {
                 preparedStatement.setObject(index, parameter.getValue(), parameter.getType());
                 index ++;
             }
-            rs = preparedStatement.executeQuery();
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(getConfiguration(), expression,
+                        getEntityDescriptorsByAlias(), columnDescriptorAliasMapping, rs);
+                return objectMaker.make();
+            }
         } catch (SQLException ex) {
             throw new QueryException(ex);
         }
-        ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(getConfiguration(), expression,
-                getEntityDescriptorsByAlias(), columnDescriptorAliasMapping, rs);
-        return objectMaker.make();
     }
 
     /**

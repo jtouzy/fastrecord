@@ -31,12 +31,11 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
 
     @Override
     public void execute() throws StatementException {
-        try {
-            Connection connection = getDataSource().getConnection();
-            DbReadyStatementMetadata metadata = writeMetadata();
-            String sqlString = metadata.getSqlString().toString();
-            printSql(metadata);
-            PreparedStatement preparedStatement = connection.prepareStatement(sqlString);
+        DbReadyStatementMetadata metadata = writeMetadata();
+        String sqlString = metadata.getSqlString().toString();
+        printSql(metadata);
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlString)) {
             int index = 1;
             for (DbReadyStatementParameter parameter : metadata.getParameters()) {
                 preparedStatement.setObject(index, parameter.getValue(), parameter.getType());
