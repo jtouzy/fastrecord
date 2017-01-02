@@ -2,6 +2,7 @@ package com.jtouzy.fastrecord.repositories;
 
 import com.jtouzy.fastrecord.builders.EntityQueryProcessor;
 import com.jtouzy.fastrecord.builders.Statement;
+import com.jtouzy.fastrecord.builders.StatementException;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.lifecycle.FastRecordInitializedEvent;
@@ -37,6 +38,12 @@ public abstract class BaseRepository<T> implements Repository<T> {
     @Override
     public List<T> findAll() {
         return improveQuery(statementProcessor.queryFrom(entityClass)).findAll();
+    }
+
+    @Override
+    public T create(T object) throws StatementException {
+        statementProcessor.insert(object).execute();
+        return object;
     }
 
     protected EntityQueryProcessor<T> improveQuery(EntityQueryProcessor<T> query) {
