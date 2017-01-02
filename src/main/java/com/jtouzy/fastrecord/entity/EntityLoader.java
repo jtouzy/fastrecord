@@ -202,8 +202,8 @@ public class EntityLoader extends ConfigurationBased {
                     // Remove the class from the full list
                     classDependencies.remove(emptyDependenciesClass);
                     // Remove all of the reference of this class in all dependencies
-                    for (Class dependantClass : classDependencies.keySet()) {
-                        dependencies = classDependencies.get(dependantClass);
+                    for (Map.Entry<Class,Set<Class>> dependantClassEntry : classDependencies.entrySet()) {
+                        dependencies = dependantClassEntry.getValue();
                         if (dependencies.contains(emptyDependenciesClass)) {
                             dependencies.remove(emptyDependenciesClass);
                         }
