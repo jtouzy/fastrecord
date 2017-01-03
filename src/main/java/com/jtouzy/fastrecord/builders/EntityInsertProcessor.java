@@ -30,7 +30,7 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
     }
 
     @Override
-    public void execute() throws StatementException {
+    public T execute() throws StatementException {
         DbReadyStatementMetadata metadata = writeMetadata();
         String sqlString = metadata.getSqlString().toString();
         printSql(metadata);
@@ -42,6 +42,7 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
                 index ++;
             }
             preparedStatement.execute();
+            return target;
         } catch (SQLException ex) {
             throw new StatementException(ex);
         }
