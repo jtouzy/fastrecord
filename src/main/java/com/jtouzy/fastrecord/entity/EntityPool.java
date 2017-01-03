@@ -25,11 +25,11 @@ import java.util.Set;
 public class EntityPool {
     private static final Logger logger = LoggerFactory.getLogger(EntityPool.class);
     private final Map<Class,EntityDescriptor> entityDescriptorsByClass;
+    private final EntityLoader entityLoader;
 
     @Autowired
-    private EntityLoader entityLoader;
-
-    private EntityPool() {
+    public EntityPool(EntityLoader entityLoader) {
+        this.entityLoader = entityLoader;
         entityDescriptorsByClass = new LinkedHashMap<>();
     }
 

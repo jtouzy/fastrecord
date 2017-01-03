@@ -113,7 +113,7 @@ public class ResultSetObjectMaker<T> {
                 }
                 invokeSetter(columnDescriptor, instance, relatedInstance);
             }
-            setPropertyValue(alias != null ? alias : tableAlias, relatedInstance,
+            setPropertyValue(alias == null ? tableAlias : alias, relatedInstance,
                     columnDescriptor.getRelatedColumn(), valueToSet);
         } else {
             invokeSetterWithConversion(columnDescriptor, instance, valueToSet);

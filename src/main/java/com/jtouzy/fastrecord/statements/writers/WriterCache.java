@@ -21,19 +21,28 @@ public class WriterCache {
      * Writer pool instance.
      * Injected bean.
      */
-    @Autowired
-    private WriterPool writerPool;
+    private final WriterPool writerPool;
     /**
      * Spring application context instance.
      * Injected bean.
      */
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
     /**
      * Writers cache.
      * Each writer is stored here after getWriter() method is called for a given WritableContext class.
      */
-    private Map<Class<? extends WritableContext>,Writer> cache = new HashMap<>();
+    private final Map<Class<? extends WritableContext>,Writer> cache = new HashMap<>();
+
+    /**
+     * Constructor.
+     * @param writerPool WriterPool instance
+     * @param applicationContext Spring's ApplicationContext instance
+     */
+    @Autowired
+    public WriterCache(WriterPool writerPool, ApplicationContext applicationContext) {
+        this.writerPool = writerPool;
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * Get a writer from cache or instantiate it with the Spring application context.
@@ -52,8 +61,9 @@ public class WriterCache {
         if (writer == null) {
             Class<Writer> writerClass = writerPool.findWriterClassFor(writableContext.getClass());
             writer = applicationContext.getBean(writerClass);
-            if (writer.isCacheable())
+            if (writer.isCacheable()) {
                 cache.put(writableContext.getClass(), writer);
+            }
         }
         writer.refreshContext(writableContext, this);
         return writer;

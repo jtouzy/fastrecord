@@ -15,7 +15,7 @@ public class TypeManagerPool {
     private static final Logger logger = LoggerFactory.getLogger(TypeManagerPool.class);
     private final Map<Class,TypeManager> typeManagersByClass;
 
-    private TypeManagerPool() {
+    public TypeManagerPool() {
         typeManagersByClass = new LinkedHashMap<>();
     }
 

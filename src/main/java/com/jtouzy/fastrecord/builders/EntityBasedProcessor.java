@@ -80,7 +80,7 @@ public abstract class EntityBasedProcessor<T, E extends WritableContext> {
     /**
      * Mapping between EntityDescriptors in the statement context and their alias
      */
-    private Map<String,EntityDescriptor> entityDescriptorsByAlias;
+    private final Map<String,EntityDescriptor> entityDescriptorsByAlias;
 
     // ---------------------------------------------------------------------------------------------
     // Constructors

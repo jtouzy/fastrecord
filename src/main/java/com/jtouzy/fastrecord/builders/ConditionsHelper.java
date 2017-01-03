@@ -3,7 +3,10 @@ package com.jtouzy.fastrecord.builders;
 import com.jtouzy.fastrecord.statements.context.ConditionChain;
 import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 
-public class ConditionsHelper {
+public final class ConditionsHelper {
+    private ConditionsHelper() {
+    }
+
     @SuppressWarnings("unchecked")
     public static final void addCondition(ConditionChain chain,
                                           ConditionChainOperator chainOperator,

@@ -67,12 +67,12 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
         if (target == null) {
             return;
         }
-        if (!columnDescriptor.isRelated()) {
-            addInsertValue(target, columnDescriptor, columnName, tableExpression);
-        } else {
+        if (columnDescriptor.isRelated()) {
             addInsertValueWithColumn(
                     getObjectValue(target, columnDescriptor),
                     columnDescriptor.getRelatedColumn(), columnName, tableExpression);
+        } else {
+            addInsertValue(target, columnDescriptor, columnName, tableExpression);
         }
     }
 

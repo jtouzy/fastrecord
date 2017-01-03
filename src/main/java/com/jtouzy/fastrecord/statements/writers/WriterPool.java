@@ -47,10 +47,7 @@ public class WriterPool {
                     throw new WriterNotFoundException(writableContextClass);
                 }
                 writerClass = writerClassPool.get(currentClass);
-                if (writerClass != null) {
-                    registerWriter(writableContextClass, writerClass);
-                    return writerClass;
-                } else {
+                if (writerClass == null) {
                     for (Class interfaceClass : currentClass.getInterfaces()) {
                         writerClass = writerClassPool.get(interfaceClass);
                         if (writerClass != null) {
@@ -59,6 +56,9 @@ public class WriterPool {
                         }
                     }
                     currentClass = currentClass.getSuperclass();
+                } else {
+                    registerWriter(writableContextClass, writerClass);
+                    return writerClass;
                 }
             }
         }

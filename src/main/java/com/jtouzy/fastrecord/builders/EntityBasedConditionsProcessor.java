@@ -57,12 +57,8 @@ public abstract class EntityBasedConditionsProcessor<T,E extends WritableContext
      * Manage conditions on statement.
      */
     public abstract class ConditionsConfigurer {
-        protected EntityBasedConditionsProcessor<T,E> getProcessor() {
-            return EntityBasedConditionsProcessor.this;
-        }
-
         private List<ConditionChain> conditionChainHierarchy;
-        private ConditionChain parentConditionChain;
+        private final ConditionChain parentConditionChain;
         private ConditionChain currentConditionChain;
 
         protected ConditionsConfigurer(ConditionChain parentConditionChain) {
@@ -72,6 +68,10 @@ public abstract class EntityBasedConditionsProcessor<T,E extends WritableContext
         protected abstract ConditionChain createDefaultConditionChain();
         protected abstract ConditionChain createConditionWrapper(ColumnDescriptor columnDescriptor,
                                                                  ConditionOperator operator, Object value);
+
+        protected EntityBasedConditionsProcessor<T,E> getProcessor() {
+            return EntityBasedConditionsProcessor.this;
+        }
 
         public ConditionsConfigurer chain() {
             return chain(ConditionChainOperator.AND);

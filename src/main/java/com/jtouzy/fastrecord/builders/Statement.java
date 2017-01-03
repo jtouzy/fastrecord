@@ -9,7 +9,7 @@ public class Statement {
     private final ApplicationContext applicationContext;
 
     @Autowired
-    private Statement(ApplicationContext applicationContext) {
+    public Statement(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 

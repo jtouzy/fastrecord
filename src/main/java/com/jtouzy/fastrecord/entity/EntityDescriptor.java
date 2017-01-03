@@ -62,11 +62,9 @@ public class EntityDescriptor {
         List<String> properties = new ArrayList<>();
         return columnDescriptorsByColumn.values().stream()
                 .filter(p -> {
-                    if (p.getPropertyType().equals(propertyType)) {
-                        if (!properties.contains(p.getPropertyName())) {
-                            properties.add(p.getPropertyName());
-                            return true;
-                        }
+                    if (p.getPropertyType().equals(propertyType) && !properties.contains(p.getPropertyName())) {
+                        properties.add(p.getPropertyName());
+                        return true;
                     }
                     return false;
                 }).collect(Collectors.toList());

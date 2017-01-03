@@ -150,7 +150,7 @@ public class EntityLoader extends ConfigurationBased {
                     throw new UnsupportedJavaTypeException(columnDescriptor.getPropertyType());
                 }
                 idColumns = relatedEntityDescriptor.getIdColumnDescriptors();
-                if (idColumns.size() == 0) {
+                if (idColumns.isEmpty()) {
                     throw new EntityDefinitionException("Related entity [" + columnDescriptor.getPropertyType() +
                             "] defined in [" + unloadedClass + "] doesn't have an Id column");
                 }
@@ -191,7 +191,7 @@ public class EntityLoader extends ConfigurationBased {
                     .filter(k -> classDependencies.get(k).isEmpty()).collect(Collectors.toList());
             // If no dependencies are empty, this may trigger an infinite loop, so we break the loop
             // and add all the last dependencies (in case for example of referencing the entity in his self)
-            if (emptyDependenciesClasses.size() == 0) {
+            if (emptyDependenciesClasses.isEmpty()) {
                 unloadedClasses.addAll(classDependencies.keySet());
                 classDependencies.clear();
             } else {
@@ -218,12 +218,12 @@ public class EntityLoader extends ConfigurationBased {
         Collection<ColumnDescriptor> sortedColumns;
         List<ColumnDescriptor> idColumns = unloadedColumns.stream()
                 .filter(ColumnDescriptor::isId).collect(Collectors.toList());
-        if (idColumns.size() != 0) {
+        if (idColumns.isEmpty()) {
+            sortedColumns = unloadedColumns;
+        } else {
             sortedColumns = new ArrayList<>();
             sortedColumns.addAll(idColumns);
             sortedColumns.addAll(unloadedColumns.stream().filter(c -> !c.isId()).collect(Collectors.toList()));
-        } else {
-            sortedColumns = unloadedColumns;
         }
         return sortedColumns;
     }

@@ -201,8 +201,9 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      */
     public Optional<T> findFirst() {
         List<T> results = findAll();
-        if (results.size() == 0)
+        if (results.isEmpty()) {
             return Optional.empty();
+        }
         return Optional.of(results.get(0));
     }
 
@@ -341,7 +342,7 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
                                                                  Class relatedClass, String propertyName) {
         List<ColumnDescriptor> columnsRelatedToFilled =
                 entityDescriptorOrigin.getDistinctColumnDescriptorsWithType(relatedClass);
-        if (columnsRelatedToFilled.size() == 0) {
+        if (columnsRelatedToFilled.isEmpty()) {
             throw new EntityDefinitionException("Entity [" + entityDescriptorOrigin.getClazz() +
                     "] does not have relation to [" + relatedClass + "]");
         }
@@ -381,7 +382,7 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
         for (ColumnDescriptor relatedIdColumn : idColumns) {
             // Get the origin columns related to the destination ID column
             associatedColumnDescriptors = entityDescriptorOrigin.getColumnDescriptorsRelatedWith(relatedIdColumn);
-            if (associatedColumnDescriptors.size() == 0) {
+            if (associatedColumnDescriptors.isEmpty()) {
                 // In the case of an Entity is related to himself, they may don't have all the related columns
                 // registered because the ID could be associated to another column.
                 // So by default we take the same column (table is the same, but different alias)
