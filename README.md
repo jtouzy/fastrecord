@@ -18,19 +18,42 @@ Lightweight Spring-based library for mapping Java POJO to Database without JPA.
 ```
 
 ## Basic example
+Entity class :
 ```java
-/* Basic entity class */
-
 @Entity
 public Event {
-  @Id
-  private String id;
-  private String title;
-  // /!\ Getters and setters must be implemented but ignored for demo
+    @Id
+    private String id;
+    private String title;
+    // /!\ Getters and setters must be implemented but ignored for demo
 }
+```
+Usage in program :
+```java
+@Autowired
+Statement statementProcessor;
 
-/* Program */
+// Find all events (SELECT event.id, event.title FROM event)
+List<Event> events = statementProcessor.queryFrom(Event.class).findAll();
+```
 
-// Retrieve all events (SELECT event.id, event.title FROM event)
-List<Event> events = Query.from(Event.class).findAll();
+## Repositories example
+Repository class :
+```java
+@Service
+public class EventRepository extends BaseSimpleIdRepository<Event,Integer> {
+    public EventRepository() {
+        super(Event.class);
+    }
+}
+```
+Usage in program :
+```java
+@Autowired
+EventRepository eventRepository;
+
+// Find an event with it's ID using Java8 optionals (SELECT event.id, event.title FROM event where event.id = ?)
+Optional<Event> optionalEvent = eventRepository.findById(1);
+// Find all events (SELECT event.id, event.title FROM event)
+List<Event> events = eventRepository.findAll();
 ```
