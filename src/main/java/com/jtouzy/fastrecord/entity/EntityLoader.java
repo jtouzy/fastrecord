@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Singleton EntityLoader Bean
@@ -84,6 +85,7 @@ public class EntityLoader extends ConfigurationBased {
     private void readEntityFields(EntityDescriptor descriptor) {
         try {
             BeanInfo info = Introspector.getBeanInfo(descriptor.getClazz());
+            Map<String,Field> classFields = getAllFields(descriptor.getClazz());
             Field field;
             Method getter, setter;
             ColumnDescriptor columnDescriptor;
@@ -95,7 +97,10 @@ public class EntityLoader extends ConfigurationBased {
                 }
                 getter = propertyDescriptor.getReadMethod();
                 setter = propertyDescriptor.getWriteMethod();
-                field = descriptor.getClazz().getDeclaredField(propertyDescriptor.getName());
+                field = classFields.get(propertyDescriptor.getName());
+                if (field == null) {
+                    throw new NoSuchFieldException();
+                }
                 if (setter != null && getter != null) {
                     typeManager = null;
                     typeManagerOptional = typeManagerPool.getTypeManager(field.getType());
@@ -113,6 +118,14 @@ public class EntityLoader extends ConfigurationBased {
         } catch (IntrospectionException | NoSuchFieldException ex) {
             throw new EntityIntrospectionException(ex);
         }
+    }
+
+    private Map<String,Field> getAllFields(Class<?> type) {
+        Map<String,Field> fields = new HashMap<>();
+        for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+            fields.putAll(Stream.of(c.getDeclaredFields()).collect(Collectors.toMap(Field::getName, f -> f)));
+        }
+        return fields;
     }
 
     private String analyzeColumnName(Field field) {
