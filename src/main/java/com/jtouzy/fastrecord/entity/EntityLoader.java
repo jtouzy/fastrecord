@@ -160,7 +160,7 @@ public class EntityLoader extends ConfigurationBased {
                 relatedEntityDescriptor = entityDescriptorsByClass.get(columnDescriptor.getPropertyType());
                 if (relatedEntityDescriptor == null) {
                     logger.error("EntityDescriptor for class " + columnDescriptor.getPropertyType() + " not found");
-                    throw new UnsupportedJavaTypeException(columnDescriptor.getPropertyType());
+                    throw new UnsupportedJavaTypeException(columnDescriptor.getPropertyType(), entityDescriptor.getClazz());
                 }
                 idColumns = relatedEntityDescriptor.getIdColumnDescriptors();
                 if (idColumns.isEmpty()) {
