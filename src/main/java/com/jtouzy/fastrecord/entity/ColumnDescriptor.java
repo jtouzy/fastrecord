@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 
 public class ColumnDescriptor {
     private final Field propertyField;
+    private final Class propertyType;
     private final Method propertyGetter;
     private final Method propertySetter;
     private final String columnName;
@@ -14,9 +15,10 @@ public class ColumnDescriptor {
     private TypeManager typeManager;
     private ColumnDescriptor relatedColumn;
 
-    public ColumnDescriptor(Field propertyField, TypeManager typeManager, Method propertyGetter, Method propertySetter,
-                            String columnName, boolean id) {
+    public ColumnDescriptor(Field propertyField, Class propertyType, TypeManager typeManager, Method propertyGetter,
+                            Method propertySetter, String columnName, boolean id) {
         this.propertyField = propertyField;
+        this.propertyType = propertyType;
         this.typeManager = typeManager;
         this.propertyGetter = propertyGetter;
         this.propertySetter = propertySetter;
@@ -41,7 +43,7 @@ public class ColumnDescriptor {
     }
 
     public Class getPropertyType() {
-        return propertyField.getType();
+        return propertyType;
     }
 
     public Field getPropertyField() {

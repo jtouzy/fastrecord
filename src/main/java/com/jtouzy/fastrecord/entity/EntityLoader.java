@@ -13,6 +13,7 @@ import com.jtouzy.fastrecord.entity.types.TypeManagerPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Service;
 
 import java.beans.BeanInfo;
@@ -91,6 +92,7 @@ public class EntityLoader extends ConfigurationBased {
             ColumnDescriptor columnDescriptor;
             Optional<TypeManager> typeManagerOptional;
             TypeManager typeManager;
+            Class columnType;
             for (PropertyDescriptor propertyDescriptor : info.getPropertyDescriptors()) {
                 if (propertyDescriptor.getName().equals("class")) {
                     continue;
@@ -102,12 +104,13 @@ public class EntityLoader extends ConfigurationBased {
                     throw new NoSuchFieldException();
                 }
                 if (setter != null && getter != null) {
+                    columnType = analyzeColumnType(descriptor.getClazz(), field);
                     typeManager = null;
-                    typeManagerOptional = typeManagerPool.getTypeManager(field.getType());
+                    typeManagerOptional = typeManagerPool.getTypeManager(columnType);
                     if (typeManagerOptional.isPresent()) {
                         typeManager = typeManagerOptional.get();
                     }
-                    columnDescriptor = new ColumnDescriptor(field, typeManager, getter, setter,
+                    columnDescriptor = new ColumnDescriptor(field, columnType, typeManager, getter, setter,
                             analyzeColumnName(field), analyzeId(field));
                     descriptor.addColumnDescriptor(columnDescriptor);
                     if (typeManager == null) {
@@ -118,6 +121,10 @@ public class EntityLoader extends ConfigurationBased {
         } catch (IntrospectionException | NoSuchFieldException ex) {
             throw new EntityIntrospectionException(ex);
         }
+    }
+
+    private Class analyzeColumnType(Class<?> type, Field field) {
+        return ResolvableType.forField(field, type).resolve();
     }
 
     private Map<String,Field> getAllFields(Class<?> type) {
@@ -280,6 +287,7 @@ public class EntityLoader extends ConfigurationBased {
                 removeColumnDescriptorOrigin = false;
             }
             newColumnDescriptor = new ColumnDescriptor(columnDescriptor.getPropertyField(),
+                    columnDescriptor.getPropertyType(),
                     relatedEntityIdColumn.getTypeManager(),
                     columnDescriptor.getPropertyGetter(), columnDescriptor.getPropertySetter(),
                     associatedColumn, columnDescriptor.isId());
