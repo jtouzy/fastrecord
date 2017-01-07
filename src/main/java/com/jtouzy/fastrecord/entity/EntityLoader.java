@@ -199,7 +199,9 @@ public class EntityLoader extends ConfigurationBased {
             for (ColumnDescriptor columnDescriptor : laterLoading.get(unloadedClass)) {
                 insideClass = columnDescriptor.getPropertyType();
                 classDependencies.putIfAbsent(insideClass, new HashSet<>());
-                dependencies.add(insideClass);
+                // Do not add the self-referencing classes
+                if (!unloadedClass.equals(insideClass))
+                    dependencies.add(insideClass);
             }
         }
         // Iterate over those dependencies to sort priority
@@ -210,7 +212,7 @@ public class EntityLoader extends ConfigurationBased {
             emptyDependenciesClasses = classDependencies.keySet().stream()
                     .filter(k -> classDependencies.get(k).isEmpty()).collect(Collectors.toList());
             // If no dependencies are empty, this may trigger an infinite loop, so we break the loop
-            // and add all the last dependencies (in case for example of referencing the entity in his self)
+            // and add all the last dependencies
             if (emptyDependenciesClasses.isEmpty()) {
                 unloadedClasses.addAll(classDependencies.keySet());
                 classDependencies.clear();
