@@ -6,6 +6,7 @@ import com.jtouzy.fastrecord.annotations.Column;
 import com.jtouzy.fastrecord.annotations.Columns;
 import com.jtouzy.fastrecord.annotations.Entity;
 import com.jtouzy.fastrecord.annotations.Id;
+import com.jtouzy.fastrecord.annotations.Ignore;
 import com.jtouzy.fastrecord.config.ConfigurationBased;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.types.TypeManager;
@@ -103,7 +104,7 @@ public class EntityLoader extends ConfigurationBased {
                 if (field == null) {
                     throw new NoSuchFieldException();
                 }
-                if (setter != null && getter != null) {
+                if (setter != null && getter != null && field.getAnnotation(Ignore.class) == null) {
                     columnType = analyzeColumnType(descriptor.getClazz(), field);
                     typeManager = null;
                     typeManagerOptional = typeManagerPool.getTypeManager(columnType);
