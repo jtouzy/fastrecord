@@ -3,10 +3,7 @@ package com.jtouzy.fastrecord.builders;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
-import com.jtouzy.fastrecord.entity.ColumnDescriptor;
-import com.jtouzy.fastrecord.entity.EntityDefinitionException;
-import com.jtouzy.fastrecord.entity.EntityDescriptor;
-import com.jtouzy.fastrecord.entity.EntityPool;
+import com.jtouzy.fastrecord.entity.*;
 import com.jtouzy.fastrecord.statements.context.ConditionChain;
 import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionOperator;
@@ -147,6 +144,18 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
     @SuppressWarnings("unchecked")
     public QueryConditionsConfigurer conditions() {
         return (QueryConditionsConfigurer)conditionsConfigurer;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Public API : Query order
+    // ---------------------------------------------------------------------------------------------
+
+    public EntityQueryProcessor<T> orderBy(String columnName) {
+        return orderBy(getEntityDescriptor(), columnName);
+    }
+
+    public EntityQueryProcessor<T> orderBy(Class entityClass, String columnName) {
+        return orderBy(findEntityDescriptorWithClass(entityClass), columnName);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -410,6 +419,28 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
                             relatedIdColumn.getColumnName()));
             ConditionsHelper.addCondition(conditionChain, ConditionChainOperator.AND, condition);
         }
+    }
+
+    private EntityQueryProcessor<T> orderBy(EntityDescriptor entityDescriptor, String columnName) {
+        Optional<ColumnDescriptor> columnDescriptorOptional = entityDescriptor.getColumnDescriptorByColumn(columnName);
+        if (!columnDescriptorOptional.isPresent()) {
+            throw new ColumnNotFoundException(columnName, entityDescriptor.getClazz());
+        }
+        ColumnDescriptor columnDescriptor = columnDescriptorOptional.get();
+        // TODO when multiple EntityDescriptor, throw error / adapt method to send alias
+        Optional<String> alias = findEntityDescriptorAlias(entityDescriptor);
+        if (!alias.isPresent()) {
+            // This error will never happen because the entityDescriptor is already checked
+            throw new IllegalStateException("An alias must be present to identify the EntityDescriptor");
+        }
+        expression.getOrderByColumns().add(
+                new DefaultAliasTableColumnExpression(
+                        columnDescriptor.getColumnType(),
+                        new DefaultAliasTableExpression(
+                                entityDescriptor.getTableName(),
+                                alias.get()),
+                        columnDescriptor.getColumnName()));
+        return this;
     }
 
     // ---------------------------------------------------------------------------------------------

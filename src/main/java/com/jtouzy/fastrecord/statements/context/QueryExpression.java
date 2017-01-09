@@ -28,4 +28,11 @@ public interface QueryExpression
      * @return SQL join list
      */
     List<QueryTargetExpressionJoin> getTargetJoinList();
+
+    /**
+     * Get the SQL query order by columns (ORDER BY)
+     *
+     * @return SQL query order by columns
+     */
+    List<AliasTableColumnExpression> getOrderByColumns();
 }

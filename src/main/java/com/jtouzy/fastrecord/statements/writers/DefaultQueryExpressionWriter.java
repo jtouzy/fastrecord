@@ -1,10 +1,7 @@
 package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.annotations.support.Writes;
-import com.jtouzy.fastrecord.statements.context.JoinOperator;
-import com.jtouzy.fastrecord.statements.context.QueryColumnExpressionWrapper;
-import com.jtouzy.fastrecord.statements.context.QueryExpression;
-import com.jtouzy.fastrecord.statements.context.QueryTargetExpressionJoin;
+import com.jtouzy.fastrecord.statements.context.*;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 import java.util.Iterator;
@@ -33,6 +30,8 @@ public class DefaultQueryExpressionWriter extends AbstractConditionChainHolderWr
         }
         // Query conditions
         writeConditions();
+        // Query order
+        appendQueryOrder();
     }
 
     private void appendJoinsFrom(String alias) {
@@ -44,6 +43,19 @@ public class DefaultQueryExpressionWriter extends AbstractConditionChainHolderWr
             }
             mergeWriter(joinExpression.getJoinTargetExpression());
             appendJoinsFrom(joinExpression.getJoinTargetExpression().getAlias());
+        }
+    }
+
+    private void appendQueryOrder() {
+        if (!getContext().getOrderByColumns().isEmpty()) {
+            getResult().getSqlString().append(" ORDER BY ");
+            Iterator<AliasTableColumnExpression> it = getContext().getOrderByColumns().iterator();
+            while (it.hasNext()) {
+                mergeWriter(it.next());
+                if (it.hasNext()) {
+                    getResult().getSqlString().append(", ");
+                }
+            }
         }
     }
 }

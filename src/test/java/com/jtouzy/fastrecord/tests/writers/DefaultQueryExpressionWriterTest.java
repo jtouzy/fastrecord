@@ -1,5 +1,7 @@
 package com.jtouzy.fastrecord.tests.writers;
 
+import com.jtouzy.fastrecord.statements.context.AliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.AliasTableExpression;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
@@ -38,6 +40,28 @@ public class DefaultQueryExpressionWriterTest extends AbstractWriterTest<QueryEx
         DbReadyStatementMetadata metadata = getWriterResult(queryExpression);
 
         Assert.assertEquals("SELECT table_alias.column_name as column_alias FROM table_name table_alias",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(0, metadata.getParameters().size());
+    }
+
+    @Test
+    public void querySingleAliasColumnSingleTargetWithoutConditionWithOrderByTest()
+            throws Exception {
+        AliasTableExpression tableExpression =
+                new DefaultAliasTableExpression("table_name", "table_alias");
+        AliasTableColumnExpression tableColumnExpression =
+                new DefaultAliasTableColumnExpression(Types.VARCHAR, tableExpression, "column_name");
+        QueryExpression queryExpression = new DefaultQueryExpression(
+                new DefaultQueryTargetExpressionWrapper(
+                        "table_alias",
+                        new DefaultSimpleTableExpression("table_name")));
+        queryExpression.getColumns().add(
+                new DefaultQueryColumnExpressionWrapper("column_alias", tableColumnExpression));
+        queryExpression.getOrderByColumns().add(tableColumnExpression);
+        DbReadyStatementMetadata metadata = getWriterResult(queryExpression);
+
+        Assert.assertEquals("SELECT table_alias.column_name as column_alias FROM table_name table_alias " +
+                        "ORDER BY table_alias.column_name",
                 metadata.getSqlString().toString());
         Assert.assertEquals(0, metadata.getParameters().size());
     }

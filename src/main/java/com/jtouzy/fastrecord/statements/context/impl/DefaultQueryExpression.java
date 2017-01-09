@@ -10,12 +10,14 @@ public class DefaultQueryExpression implements QueryExpression {
     private final QueryTargetExpressionWrapper mainTarget;
     private final List<QueryTargetExpressionJoin> joinList;
     private final QueryConditionChain conditionChain;
+    private final List<AliasTableColumnExpression> orderByList;
 
     public DefaultQueryExpression(QueryTargetExpressionWrapper mainTarget) {
         this.mainTarget = mainTarget;
         columns = new ArrayList<>();
         joinList = new ArrayList<>();
         conditionChain = createConditionChain();
+        orderByList = new ArrayList<>();
     }
 
     protected QueryConditionChain createConditionChain() {
@@ -40,5 +42,10 @@ public class DefaultQueryExpression implements QueryExpression {
     @Override
     public QueryConditionChain getConditionChain() {
         return conditionChain;
+    }
+
+    @Override
+    public List<AliasTableColumnExpression> getOrderByColumns() {
+        return orderByList;
     }
 }
