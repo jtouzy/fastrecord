@@ -35,6 +35,11 @@ public abstract class AbstractWriter<T extends WritableContext> implements Write
         return true;
     }
 
+    @Override
+    public boolean needsNewCache() {
+        return false;
+    }
+
     protected <C extends WritableContext> void mergeWriter(C context) {
         Writer<C> writer = writerCache.getWriter(context);
         writer.write();

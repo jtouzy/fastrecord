@@ -45,4 +45,12 @@ public interface Writer<T extends WritableContext> {
      * @return True if the writer is cacheable, false otherwise
      */
     boolean isCacheable();
+
+    /**
+     * Boolean to know if a writer needs a new cache instance when refreshing
+     *
+     * @return True if the writer needs a new cache, otherwise the same cache instance
+     *         will be shared across the cache chain
+     */
+    boolean needsNewCache();
 }

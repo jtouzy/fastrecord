@@ -3,6 +3,7 @@ package com.jtouzy.fastrecord.statements.writers;
 import com.jtouzy.fastrecord.statements.context.WritableContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.Map;
  * @author jtouzy
  */
 @Service("FastRecord.WriterProcess.WriterCache")
+@Scope("prototype")
 public class WriterCache {
     /**
      * Writer pool instance.
@@ -65,7 +67,11 @@ public class WriterCache {
                 cache.put(writableContext.getClass(), writer);
             }
         }
-        writer.refreshContext(writableContext, this);
+        WriterCache cache = this;
+        if (writer.needsNewCache()) {
+            cache = applicationContext.getBean(WriterCache.class);
+        }
+        writer.refreshContext(writableContext, cache);
         return writer;
     }
 }

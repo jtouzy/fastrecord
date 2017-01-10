@@ -1,7 +1,11 @@
 package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.annotations.support.Writes;
-import com.jtouzy.fastrecord.statements.context.*;
+import com.jtouzy.fastrecord.statements.context.AliasTableColumnExpression;
+import com.jtouzy.fastrecord.statements.context.JoinOperator;
+import com.jtouzy.fastrecord.statements.context.QueryColumnExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context.QueryExpression;
+import com.jtouzy.fastrecord.statements.context.QueryTargetExpressionJoin;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 
 import java.util.Iterator;
@@ -57,5 +61,10 @@ public class DefaultQueryExpressionWriter extends AbstractConditionChainHolderWr
                 }
             }
         }
+    }
+
+    @Override
+    public boolean needsNewCache() {
+        return true;
     }
 }
