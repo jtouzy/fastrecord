@@ -1,11 +1,15 @@
 package com.jtouzy.fastrecord.entity.types;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.jtouzy.fastrecord.annotations.support.Converts;
+import com.jtouzy.fastrecord.utils.Priority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,12 +27,16 @@ public class TypeManagerPool {
         logger.debug("Registering type managers...");
         String[] typeManagerBeanNames = applicationContext.getBeanNamesForAnnotation(Converts.class);
         TypeManager typeManagerBean;
+        Multimap<Class,TypeManager> classTypeManagers = ArrayListMultimap.create();
+        Map<TypeManager,Integer> prioritiesByTypeManager = new HashMap<>();
+        Converts annotation;
         for (String typeManagerBeanName : typeManagerBeanNames) {
             typeManagerBean = (TypeManager)applicationContext.getBean(typeManagerBeanName);
-            typeManagersByClass.put(
-                    typeManagerBean.getClass().getAnnotation(Converts.class).value(),
-                    typeManagerBean);
+            annotation = typeManagerBean.getClass().getAnnotation(Converts.class);
+            classTypeManagers.put(annotation.value(), typeManagerBean);
+            prioritiesByTypeManager.put(typeManagerBean, annotation.priority());
         }
+        typeManagersByClass.putAll(Priority.getPriorityMap(classTypeManagers, prioritiesByTypeManager));
         logger.debug("End registering type managers.");
     }
 

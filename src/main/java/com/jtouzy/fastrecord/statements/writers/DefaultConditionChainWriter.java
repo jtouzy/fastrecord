@@ -6,10 +6,11 @@ import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.WritableContext;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.utils.Chain;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.util.Iterator;
 
-@Writes(ConditionChain.class)
+@Writes(value = ConditionChain.class, priority = Priority.NATIVE)
 public class DefaultConditionChainWriter extends AbstractWriter<ConditionChain> {
     @Override
     @SuppressWarnings("unchecked")

@@ -5,11 +5,12 @@ import com.jtouzy.fastrecord.statements.context.InsertExpression;
 import com.jtouzy.fastrecord.statements.context.SimpleTableColumnExpression;
 import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.util.Iterator;
 import java.util.Map;
 
-@Writes(InsertExpression.class)
+@Writes(value = InsertExpression.class, priority = Priority.NATIVE)
 public class DefaultInsertExpressionWriter extends AbstractWriter<InsertExpression> {
     @Override
     public void write() {

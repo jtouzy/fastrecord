@@ -4,8 +4,9 @@ import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.ConstantExpression;
 import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.utils.Priority;
 
-@Writes(ConstantExpression.class)
+@Writes(value = ConstantExpression.class, priority = Priority.NATIVE)
 public class DefaultConstantExpressionWriter extends AbstractWriter<ConstantExpression> {
     @Override
     public void write() {

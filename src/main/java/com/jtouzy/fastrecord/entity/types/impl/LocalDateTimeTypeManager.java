@@ -2,12 +2,13 @@ package com.jtouzy.fastrecord.entity.types.impl;
 
 import com.jtouzy.fastrecord.annotations.support.Converts;
 import com.jtouzy.fastrecord.entity.types.TypeManager;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.sql.Types;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@Converts(LocalDateTime.class)
+@Converts(value = LocalDateTime.class, priority = Priority.NATIVE)
 public class LocalDateTimeTypeManager implements TypeManager<LocalDateTime> {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 

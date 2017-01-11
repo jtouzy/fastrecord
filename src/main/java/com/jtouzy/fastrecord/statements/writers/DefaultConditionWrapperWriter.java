@@ -4,11 +4,12 @@ import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.BasicConditionExpression;
 import com.jtouzy.fastrecord.statements.context.ConditionWrapper;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.util.Iterator;
 import java.util.List;
 
-@Writes(ConditionWrapper.class)
+@Writes(value = ConditionWrapper.class, priority = Priority.NATIVE)
 public class DefaultConditionWrapperWriter extends AbstractWriter<ConditionWrapper> {
     @Override
     @SuppressWarnings("unchecked")

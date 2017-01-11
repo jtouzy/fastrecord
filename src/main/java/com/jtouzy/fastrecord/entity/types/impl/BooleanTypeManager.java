@@ -2,10 +2,11 @@ package com.jtouzy.fastrecord.entity.types.impl;
 
 import com.jtouzy.fastrecord.annotations.support.Converts;
 import com.jtouzy.fastrecord.entity.types.TypeManager;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.sql.Types;
 
-@Converts(Boolean.class)
+@Converts(value = Boolean.class, priority = Priority.NATIVE)
 public class BooleanTypeManager implements TypeManager<Boolean> {
     @Override
     public int getSqlType() {

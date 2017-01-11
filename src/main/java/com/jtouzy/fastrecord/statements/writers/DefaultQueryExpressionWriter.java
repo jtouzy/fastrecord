@@ -7,12 +7,13 @@ import com.jtouzy.fastrecord.statements.context.QueryColumnExpressionWrapper;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import com.jtouzy.fastrecord.statements.context.QueryTargetExpressionJoin;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Writes(QueryExpression.class)
+@Writes(value = QueryExpression.class, priority = Priority.NATIVE)
 public class DefaultQueryExpressionWriter extends AbstractConditionChainHolderWriter<QueryExpression> {
     @Override
     public void write() {

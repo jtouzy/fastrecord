@@ -4,8 +4,9 @@ import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.AliasTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.utils.Priority;
 
-@Writes(AliasTableExpression.class)
+@Writes(value = AliasTableExpression.class, priority = Priority.NATIVE)
 public class DefaultAliasTableExpressionWriter extends AbstractTableExpressionWriter<AliasTableExpression> {
     @Override
     public void write() {

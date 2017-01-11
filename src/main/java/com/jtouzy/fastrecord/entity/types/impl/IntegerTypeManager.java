@@ -2,10 +2,11 @@ package com.jtouzy.fastrecord.entity.types.impl;
 
 import com.jtouzy.fastrecord.annotations.support.Converts;
 import com.jtouzy.fastrecord.entity.types.TypeManager;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.sql.Types;
 
-@Converts(Integer.class)
+@Converts(value = Integer.class, priority = Priority.NATIVE)
 public class IntegerTypeManager implements TypeManager<Integer> {
     @Override
     public int getSqlType() {

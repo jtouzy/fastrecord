@@ -4,8 +4,9 @@ import com.google.common.base.Strings;
 import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.QueryColumnExpressionWrapper;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
+import com.jtouzy.fastrecord.utils.Priority;
 
-@Writes(QueryColumnExpressionWrapper.class)
+@Writes(value = QueryColumnExpressionWrapper.class, priority = Priority.NATIVE)
 public class DefaultQueryColumnExpressionWrapperWriter extends AbstractWriter<QueryColumnExpressionWrapper> {
     @Override
     public void write() {

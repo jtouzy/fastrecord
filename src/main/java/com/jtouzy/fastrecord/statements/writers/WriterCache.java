@@ -61,7 +61,7 @@ public class WriterCache {
     public <C extends WritableContext> Writer<C> getWriter(C writableContext) {
         Writer<C> writer = cache.get(writableContext.getClass());
         if (writer == null) {
-            Class<Writer> writerClass = writerPool.findWriterClassFor(writableContext.getClass());
+            Class<? extends Writer> writerClass = writerPool.findWriterClassFor(writableContext.getClass());
             writer = applicationContext.getBean(writerClass);
             if (writer.isCacheable()) {
                 cache.put(writableContext.getClass(), writer);
