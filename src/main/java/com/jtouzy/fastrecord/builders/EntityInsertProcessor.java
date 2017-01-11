@@ -1,5 +1,6 @@
 package com.jtouzy.fastrecord.builders;
 
+import com.jtouzy.fastrecord.annotations.support.Process;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
@@ -11,16 +12,14 @@ import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpressio
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import com.jtouzy.fastrecord.utils.Priority;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-@Service("FastRecord.Core.EntityInsertProcessor")
-@Scope("prototype")
+@Process(value = InsertExpression.class, priority = Priority.NATIVE)
 public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpression> implements WriteProcessor<T> {
     protected T target;
 
@@ -42,6 +41,7 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
                 index ++;
             }
             preparedStatement.execute();
+            refreshEntity(preparedStatement);
             return target;
         } catch (SQLException ex) {
             throw new StatementException(ex);
@@ -51,16 +51,21 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
     @Override
     public void init(Class<T> entityClass, T target) {
         this.target = target;
-        init(entityClass);
+        super.init(entityClass);
     }
 
     @Override
-    protected void initializeContext() {
+    protected void initializeContext(Class<T> entityClass) {
+        super.initializeContext(entityClass);
         SimpleTableExpression tableExpression = new DefaultSimpleTableExpression(getEntityDescriptor().getTableName());
         expression = new DefaultInsertExpression(tableExpression);
         for (ColumnDescriptor columnDescriptor : getEntityDescriptor().getColumnDescriptors()) {
             addInsertValueWithColumn(target, columnDescriptor, columnDescriptor.getColumnName(), tableExpression);
         }
+    }
+
+    protected void refreshEntity(PreparedStatement preparedStatement)
+    throws SQLException, StatementException {
     }
 
     private void addInsertValueWithColumn(Object target, ColumnDescriptor columnDescriptor, String columnName,

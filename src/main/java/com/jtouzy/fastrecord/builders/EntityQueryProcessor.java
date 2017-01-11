@@ -2,8 +2,13 @@ package com.jtouzy.fastrecord.builders;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.jtouzy.fastrecord.annotations.support.Process;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
-import com.jtouzy.fastrecord.entity.*;
+import com.jtouzy.fastrecord.entity.ColumnDescriptor;
+import com.jtouzy.fastrecord.entity.ColumnNotFoundException;
+import com.jtouzy.fastrecord.entity.EntityDefinitionException;
+import com.jtouzy.fastrecord.entity.EntityDescriptor;
+import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.statements.context.ConditionChain;
 import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionOperator;
@@ -23,10 +28,9 @@ import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpressio
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
+import com.jtouzy.fastrecord.utils.Priority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -41,9 +45,9 @@ import java.util.Optional;
  *
  * @param <T> Entity class
  */
-@Service("FastRecord.Core.EntityQueryProcessor")
-@Scope("prototype")
-public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, QueryExpression> {
+@Process(value = QueryExpression.class, priority = Priority.NATIVE)
+public class EntityQueryProcessor<T>
+        extends EntityBasedConditionsProcessor<T, QueryExpression> implements QueryProcessor<T> {
 
     // ---------------------------------------------------------------------------------------------
     // Static final properties
@@ -88,7 +92,8 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      * @param filledEntityClass Class related to the base class of the query
      * @return QueryAPI object
      */
-    public EntityQueryProcessor<T> fill(Class filledEntityClass) {
+    @Override
+    public QueryProcessor<T> fill(Class filledEntityClass) {
         return fill(filledEntityClass, null);
     }
 
@@ -105,7 +110,8 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      * @param propertyName Name of the property to get the related Entity from the base class
      * @return QueryAPI object
      */
-    public EntityQueryProcessor<T> fill(Class filledEntityClass, String propertyName) {
+    @Override
+    public QueryProcessor<T> fill(Class filledEntityClass, String propertyName) {
         return fillFrom(getEntityDescriptor(), filledEntityClass, propertyName);
     }
 
@@ -119,7 +125,8 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      * @param filledEntityClass Class related to the origin class
      * @return QueryAPI object
      */
-    public EntityQueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass) {
+    @Override
+    public QueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass) {
         return fillFrom(originEntityClass, filledEntityClass, null);
     }
 
@@ -136,7 +143,8 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      * @param propertyName Name of the property to get the related Entity from the origin class
      * @return QueryAPI object
      */
-    public EntityQueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass, String propertyName) {
+    @Override
+    public QueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass, String propertyName) {
         return fillFrom(findEntityDescriptorWithClass(originEntityClass), filledEntityClass, propertyName);
     }
 
@@ -150,11 +158,13 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
     // Public API : Query order
     // ---------------------------------------------------------------------------------------------
 
-    public EntityQueryProcessor<T> orderBy(String columnName) {
+    @Override
+    public QueryProcessor<T> orderBy(String columnName) {
         return orderBy(getEntityDescriptor(), columnName);
     }
 
-    public EntityQueryProcessor<T> orderBy(Class entityClass, String columnName) {
+    @Override
+    public QueryProcessor<T> orderBy(Class entityClass, String columnName) {
         return orderBy(findEntityDescriptorWithClass(entityClass), columnName);
     }
 
@@ -168,6 +178,7 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      *
      * @return Full SQL text of this query
      */
+    @Override
     public String getSql() {
         return writeMetadata().getSqlString().toString();
     }
@@ -178,6 +189,7 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      *
      * @return All the objects created with the SQL query result
      */
+    @Override
     public List<T> findAll() {
         DbReadyStatementMetadata metadata = writeMetadata();
         String sqlString = metadata.getSqlString().toString();
@@ -208,6 +220,7 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      *
      * @return Only the first object created with the SQL query result
      */
+    @Override
     public Optional<T> findFirst() {
         List<T> results = findAll();
         if (results.isEmpty()) {
@@ -227,7 +240,8 @@ public class EntityQueryProcessor<T> extends EntityBasedConditionsProcessor<T, Q
      * Creates the default base QueryContext.
      */
     @Override
-    protected void initializeContext() {
+    protected void initializeContext(Class<T> entityClass) {
+        super.initializeContext(entityClass);
         String firstEntityDescriptorAlias = registerAlias(getEntityDescriptor());
         expression = new DefaultQueryExpression(
                 new DefaultQueryTargetExpressionWrapper(

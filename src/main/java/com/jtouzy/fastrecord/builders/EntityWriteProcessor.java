@@ -7,7 +7,7 @@ import com.jtouzy.fastrecord.statements.context.WritableContext;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
 
 public abstract class EntityWriteProcessor<T, E extends WritableContext & ConditionChainHolder>
-        extends EntityBasedConditionsProcessor<T,E> {
+        extends EntityBasedConditionsProcessor<T,E> implements WriteProcessor<T> {
 
     protected T target;
 
@@ -15,10 +15,9 @@ public abstract class EntityWriteProcessor<T, E extends WritableContext & Condit
         super(entityPool, writerCache, configuration);
     }
 
+    @Override
     public void init(Class<T> entityClass, T target) {
-        init(entityClass);
+        super.init(entityClass);
         this.target = target;
     }
-
-    protected abstract void execute() throws StatementException;
 }

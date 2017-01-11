@@ -1,5 +1,6 @@
 package com.jtouzy.fastrecord.lifecycle;
 
+import com.jtouzy.fastrecord.builders.Statement;
 import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.entity.types.TypeManagerPool;
 import com.jtouzy.fastrecord.statements.writers.WriterPool;
@@ -19,6 +20,8 @@ public class FastRecordInitializer {
     @Autowired
     private WriterPool writerPool;
     @Autowired
+    private Statement processorsManager;
+    @Autowired
     private ApplicationEventPublisher eventPublisher;
 
     @EventListener
@@ -27,6 +30,7 @@ public class FastRecordInitializer {
         typeManagerPool.initializeTypeManagers(applicationContext);
         entityPool.initializeEntities(applicationContext);
         writerPool.initializeWriters(applicationContext);
+        processorsManager.initializeProcessors();
         eventPublisher.publishEvent(new FastRecordInitializedEvent(this));
     }
 }

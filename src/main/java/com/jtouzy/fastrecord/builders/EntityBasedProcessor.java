@@ -24,7 +24,7 @@ import java.util.Optional;
  * @param <T> Entity class
  * @param <E> WritableContext to be created
  */
-public abstract class EntityBasedProcessor<T, E extends WritableContext> {
+public abstract class EntityBasedProcessor<T, E extends WritableContext> implements Processor {
 
     // ---------------------------------------------------------------------------------------------
     // Static final properties
@@ -131,7 +131,7 @@ public abstract class EntityBasedProcessor<T, E extends WritableContext> {
     }
 
     // ---------------------------------------------------------------------------------------------
-    // Protected (package-private) methods
+    // Public methods
     // ---------------------------------------------------------------------------------------------
 
     /**
@@ -140,9 +140,8 @@ public abstract class EntityBasedProcessor<T, E extends WritableContext> {
      *
      * @param entityClass The Entity class target of the statement
      */
-    void init(Class<T> entityClass) {
-        this.entityDescriptor = findEntityDescriptorWithClass(entityClass);
-        initializeContext();
+    public void init(Class<T> entityClass) {
+        initializeContext(entityClass);
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -153,7 +152,9 @@ public abstract class EntityBasedProcessor<T, E extends WritableContext> {
      * Context initialization.
      * Initialize the ConditionsConfigurer.
      */
-    protected abstract void initializeContext();
+    protected void initializeContext(Class<T> entityClass) {
+        this.entityDescriptor = findEntityDescriptorWithClass(entityClass);
+    }
 
     /**
      * Print SQL in logger if the configuration enables it.
@@ -173,6 +174,7 @@ public abstract class EntityBasedProcessor<T, E extends WritableContext> {
      *
      * @return SQLMetadata created based on this statement
      */
+    @Override
     public DbReadyStatementMetadata writeMetadata() {
         Writer<E> writer = writerCache.getWriter(expression);
         writer.write();
