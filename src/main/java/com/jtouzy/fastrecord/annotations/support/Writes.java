@@ -1,5 +1,6 @@
 package com.jtouzy.fastrecord.annotations.support;
 
+import com.jtouzy.fastrecord.statements.context.WritableContext;
 import com.jtouzy.fastrecord.utils.Priority;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,6 @@ import java.lang.annotation.RetentionPolicy;
 @Scope("prototype")
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Writes {
-    Class value();
+    Class<? extends WritableContext> value();
     int priority() default Priority.CUSTOM;
 }
