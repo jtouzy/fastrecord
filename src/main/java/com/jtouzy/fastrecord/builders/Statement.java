@@ -56,21 +56,21 @@ public class Statement {
         Class<? extends QueryProcessor<T>> processorClass =
                 (Class<? extends QueryProcessor<T>>)processorsByClass.get(QueryExpression.class);
         QueryProcessor<T> processor = applicationContext.getBean(processorClass);
-        processor.init(entityClass);
+        processor.initProcessor(entityClass);
         return processor;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> WriteProcessor<T> insert(T target) {
+    public <T> InsertProcessor<T> insert(T target) {
         return insert((Class<T>)target.getClass(), target);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> WriteProcessor<T> insert(Class<T> entityClass, T target) {
-        Class<? extends WriteProcessor<T>> processorClass =
-                (Class<? extends WriteProcessor<T>>)processorsByClass.get(InsertExpression.class);
-        WriteProcessor<T> processor = applicationContext.getBean(processorClass);
-        processor.init(entityClass, target);
+    public <T> InsertProcessor<T> insert(Class<T> entityClass, T target) {
+        Class<? extends InsertProcessor<T>> processorClass =
+                (Class<? extends InsertProcessor<T>>)processorsByClass.get(InsertExpression.class);
+        InsertProcessor<T> processor = applicationContext.getBean(processorClass);
+        processor.initWriteProcessor(entityClass, target);
         return processor;
     }
 }

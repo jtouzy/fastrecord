@@ -1,6 +1,5 @@
 package com.jtouzy.fastrecord.repositories;
 
-import com.jtouzy.fastrecord.builders.EntityQueryProcessor;
 import com.jtouzy.fastrecord.builders.QueryProcessor;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 
@@ -19,7 +18,7 @@ public abstract class BaseMultipleIdRepository<T> extends BaseRepository<T> impl
         ColumnDescriptor columnDescriptor;
         for (Iterator<ColumnDescriptor> it = entityDescriptor.getIdColumnDescriptors().iterator(); it.hasNext(); ++ index) {
             columnDescriptor = it.next();
-            query.conditions().eq(columnDescriptor.getColumnName(), ids[index]);
+            query.eq(columnDescriptor.getColumnName(), ids[index]);
         }
         return query.findFirst();
     }

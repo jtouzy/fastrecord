@@ -13,6 +13,7 @@ import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
 import com.jtouzy.fastrecord.utils.Priority;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
@@ -20,13 +21,37 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 @Process(value = InsertExpression.class, priority = Priority.NATIVE)
-public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpression> implements WriteProcessor<T> {
-    protected T target;
+public class DefaultInsertProcessor<T> extends DefaultProcessor<T,InsertExpression> implements InsertProcessor<T> {
 
-    public EntityInsertProcessor(EntityPool entityPool, WriterCache writerCache,
-                                 FastRecordConfiguration configuration) {
-        super(entityPool, writerCache, configuration);
+    // =============================================================================
+    // Attributes
+    // =============================================================================
+
+    private T target;
+
+    // =============================================================================
+    // Constructors
+    // =============================================================================
+
+    @Autowired
+    public DefaultInsertProcessor(WriterCache writerCache, EntityPool entityPool,
+                                  FastRecordConfiguration configuration) {
+        super(writerCache, entityPool, configuration);
     }
+
+    // =============================================================================
+    // Initialization overrides
+    // =============================================================================
+
+    @Override
+    public void initWriteProcessor(Class<T> entityClass, T target) {
+        this.target = target;
+        initProcessor(entityClass);
+    }
+
+    // =============================================================================
+    // Interface overrides
+    // =============================================================================
 
     @Override
     public T execute() throws StatementException {
@@ -48,21 +73,39 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
         }
     }
 
-    @Override
-    public void init(Class<T> entityClass, T target) {
-        this.target = target;
-        super.init(entityClass);
-    }
+    // =============================================================================
+    // Abstract methods overrides
+    // =============================================================================
 
     @Override
-    protected void initializeContext(Class<T> entityClass) {
-        super.initializeContext(entityClass);
-        SimpleTableExpression tableExpression = new DefaultSimpleTableExpression(getEntityDescriptor().getTableName());
-        expression = new DefaultInsertExpression(tableExpression);
+    protected InsertExpression createExpression() {
+        return new DefaultInsertExpression(new DefaultSimpleTableExpression(getEntityDescriptor().getTableName()));
+    }
+
+    // =============================================================================
+    // Super classes overrides
+    // =============================================================================
+
+    @Override
+    public void initProcessor(Class<T> entityClass) {
+        super.initProcessor(entityClass);
         for (ColumnDescriptor columnDescriptor : getEntityDescriptor().getColumnDescriptors()) {
-            addInsertValueWithColumn(target, columnDescriptor, columnDescriptor.getColumnName(), tableExpression);
+            addInsertValueWithColumn(target, columnDescriptor,
+                    columnDescriptor.getColumnName(), getExpression().getTarget());
         }
     }
+
+    // =============================================================================
+    // Protected methods
+    // =============================================================================
+
+    protected T getTarget() {
+        return target;
+    }
+
+    // =============================================================================
+    // Private methods
+    // =============================================================================
 
     protected void refreshEntity(PreparedStatement preparedStatement)
     throws SQLException, StatementException {
@@ -89,7 +132,7 @@ public class EntityInsertProcessor<T> extends EntityBasedProcessor<T,InsertExpre
         if (columnValue == null) {
             return;
         }
-        expression.getValues().put(
+        getExpression().getValues().put(
                 new DefaultSimpleTableColumnExpression(
                         columnDescriptor.getColumnType(), tableExpression, columnName),
                 String.valueOf(columnDescriptor.getTypeManager().convertToDatabase(columnValue)));

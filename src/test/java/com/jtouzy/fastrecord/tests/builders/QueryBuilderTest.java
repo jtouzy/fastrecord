@@ -13,7 +13,7 @@ public class QueryBuilderTest extends AbstractBuilderTest {
     @Test
     public void singleConditionQueryBuilderTest() throws Exception {
         DbReadyStatementMetadata metadata = statementProcessor.queryFrom(SimpleEvent.class)
-                .conditions().eq("title", "Test").endConditions().writeMetadata();
+                .eq("title", "Test").writeMetadata();
         Assert.assertEquals("SELECT simple_event0.id as simple_event0$$id, " +
                 "simple_event0.title as simple_event0$$title " +
                 "FROM simple_event simple_event0 " +
@@ -27,7 +27,7 @@ public class QueryBuilderTest extends AbstractBuilderTest {
     @Test
     public void twoConditionsQueryBuilderTest() throws Exception {
         DbReadyStatementMetadata metadata = statementProcessor.queryFrom(SimpleEvent.class)
-                .conditions().eq("title", "Test2").andEq("id", 1).endConditions().writeMetadata();
+                .eq("title", "Test2").andEq("id", 1).writeMetadata();
         Assert.assertEquals("SELECT simple_event0.id as simple_event0$$id, " +
                         "simple_event0.title as simple_event0$$title " +
                         "FROM simple_event simple_event0 " +

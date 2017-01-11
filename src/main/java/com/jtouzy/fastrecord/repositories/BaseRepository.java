@@ -1,6 +1,5 @@
 package com.jtouzy.fastrecord.repositories;
 
-import com.jtouzy.fastrecord.builders.EntityQueryProcessor;
 import com.jtouzy.fastrecord.builders.QueryProcessor;
 import com.jtouzy.fastrecord.builders.Statement;
 import com.jtouzy.fastrecord.builders.StatementException;

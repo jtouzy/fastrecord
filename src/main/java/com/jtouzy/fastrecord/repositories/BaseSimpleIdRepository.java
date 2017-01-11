@@ -25,7 +25,7 @@ public abstract class BaseSimpleIdRepository<T,ID> extends BaseRepository<T> imp
     public Optional<T> findById(ID id) {
         QueryProcessor<T> query = improveQuery(statementProcessor.queryFrom(entityClass));
         ColumnDescriptor descriptor = entityDescriptor.getIdColumnDescriptors().get(0);
-        query.conditions().eq(descriptor.getColumnName(), id);
+        query.eq(descriptor.getColumnName(), id);
         return query.findFirst();
     }
 }
