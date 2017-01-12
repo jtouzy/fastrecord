@@ -231,7 +231,7 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
             throw new IllegalStateException("At least one value must be set for multiple conditions");
         }
         if (values.size() == 1) {
-            createSimpleCondition(chainOperator, columnName, ConditionOperator.EQUALS, values);
+            createSimpleCondition(chainOperator, columnName, ConditionOperator.EQUALS, values.get(0));
         } else {
             initializeIfNeeded();
             ColumnDescriptor columnDescriptor = safeGetColumnDescriptor(columnName);

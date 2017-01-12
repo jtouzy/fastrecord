@@ -79,6 +79,20 @@ public class QueryBuilderTest extends AbstractBuilderTest {
     }
 
     @Test
+    public void singleConditionMultipleValuesMethodButOneValueQueryBuilderTest() throws Exception {
+        DbReadyStatementMetadata metadata = statementProcessor.queryFrom(SimpleEvent.class)
+                .in("title", Arrays.asList("Test")).writeMetadata();
+        Assert.assertEquals("SELECT simple_event0.id as simple_event0$$id, " +
+                        "simple_event0.title as simple_event0$$title " +
+                        "FROM simple_event simple_event0 " +
+                        "WHERE ((simple_event0.title = ?))",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(1, metadata.getParameters().size());
+        Assert.assertEquals("Test", metadata.getParameters().get(0).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(0).getType());
+    }
+
+    @Test
     public void simpleJoinQueryBuilderTest() throws Exception {
         DbReadyStatementMetadata metadata = statementProcessor.queryFrom(Event.class)
                 .fill(Category.class).writeMetadata();
