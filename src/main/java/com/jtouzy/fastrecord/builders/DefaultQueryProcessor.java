@@ -12,6 +12,7 @@ import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.statements.context.ConditionChain;
 import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionOperator;
+import com.jtouzy.fastrecord.statements.context.ConditionWrapper;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
 import com.jtouzy.fastrecord.statements.context.QueryConditionChain;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
@@ -154,9 +155,9 @@ public class DefaultQueryProcessor<T>
 
     @Override
     @SuppressWarnings("unchecked")
-    protected ConditionChain createConditionWrapper(ColumnDescriptor columnDescriptor,
-                                                    ConditionOperator operator, Object value) {
-        return new DefaultQueryConditionWrapper(
+    protected <C extends ConditionChain & ConditionWrapper> C createConditionWrapper(
+            ColumnDescriptor columnDescriptor, ConditionOperator operator, Object value) {
+        return (C)new DefaultQueryConditionWrapper(
                 new DefaultAliasTableColumnExpression(
                         columnDescriptor.getColumnType(),
                         new DefaultAliasTableExpression(
@@ -237,6 +238,18 @@ public class DefaultQueryProcessor<T>
     }
 
     @Override
+    public QueryProcessor<T> in(String columnName, List<Object> values) {
+        super.in(columnName, values);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> notIn(String columnName, List<Object> values) {
+        super.notIn(columnName, values);
+        return this;
+    }
+
+    @Override
     public QueryProcessor<T> andEq(String columnName, Object value) {
         super.andEq(columnName, value);
         return this;
@@ -261,6 +274,18 @@ public class DefaultQueryProcessor<T>
     }
 
     @Override
+    public QueryProcessor<T> andIn(String columnName, List<Object> values) {
+        super.andIn(columnName, values);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andNotIn(String columnName, List<Object> values) {
+        super.andNotIn(columnName, values);
+        return this;
+    }
+
+    @Override
     public QueryProcessor<T> orEq(String columnName, Object value) {
         super.orEq(columnName, value);
         return this;
@@ -281,6 +306,18 @@ public class DefaultQueryProcessor<T>
     @Override
     public QueryProcessor<T> orNotLike(String columnName, Object value) {
         super.orNotLike(columnName, value);
+        return this;
+    }
+
+    @Override
+    public  QueryProcessor<T> orIn(String columnName, List<Object> values) {
+        super.orIn(columnName, values);
+        return this;
+    }
+
+    @Override
+    public  QueryProcessor<T> orNotIn(String columnName, List<Object> values) {
+        super.orNotIn(columnName, values);
         return this;
     }
 

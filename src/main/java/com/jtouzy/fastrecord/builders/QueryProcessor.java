@@ -27,12 +27,18 @@ public interface QueryProcessor<T> extends ConditionsProcessor<T,QueryExpression
     @Override QueryProcessor<T> notEq(String columnName, Object value);
     @Override QueryProcessor<T> like(String columnName, Object value);
     @Override QueryProcessor<T> notLike(String columnName, Object value);
+    @Override QueryProcessor<T> in(String columnName, List<Object> value);
+    @Override QueryProcessor<T> notIn(String columnName, List<Object> value);
     @Override QueryProcessor<T> andEq(String columnName, Object value);
     @Override QueryProcessor<T> andNotEq(String columnName, Object value);
     @Override QueryProcessor<T> andLike(String columnName, Object value);
     @Override QueryProcessor<T> andNotLike(String columnName, Object value);
+    @Override QueryProcessor<T> andIn(String columnName, List<Object> value);
+    @Override QueryProcessor<T> andNotIn(String columnName, List<Object> value);
     @Override QueryProcessor<T> orEq(String columnName, Object value);
     @Override QueryProcessor<T> orNotEq(String columnName, Object value);
     @Override QueryProcessor<T> orLike(String columnName, Object value);
     @Override QueryProcessor<T> orNotLike(String columnName, Object value);
+    @Override QueryProcessor<T> orIn(String columnName, List<Object> value);
+    @Override QueryProcessor<T> orNotIn(String columnName, List<Object> value);
 }

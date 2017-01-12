@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.sql.Types;
+import java.util.Arrays;
 
 public class QueryBuilderTest extends AbstractBuilderTest {
     @Test
@@ -38,6 +39,43 @@ public class QueryBuilderTest extends AbstractBuilderTest {
         Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(0).getType());
         Assert.assertEquals("1", metadata.getParameters().get(1).getValue());
         Assert.assertEquals(Types.INTEGER, metadata.getParameters().get(1).getType());
+    }
+
+    @Test
+    public void singleConditionMultipleValuesQueryBuilderTest() throws Exception {
+        DbReadyStatementMetadata metadata = statementProcessor.queryFrom(SimpleEvent.class)
+                .in("title", Arrays.asList("Test", "Test1")).writeMetadata();
+        Assert.assertEquals("SELECT simple_event0.id as simple_event0$$id, " +
+                        "simple_event0.title as simple_event0$$title " +
+                        "FROM simple_event simple_event0 " +
+                        "WHERE ((simple_event0.title IN (?, ?)))",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(2, metadata.getParameters().size());
+        Assert.assertEquals("Test", metadata.getParameters().get(0).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(0).getType());
+        Assert.assertEquals("Test1", metadata.getParameters().get(1).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(1).getType());
+    }
+
+    @Test
+    public void twoConditionMultipleValuesQueryBuilderTest() throws Exception {
+        DbReadyStatementMetadata metadata = statementProcessor.queryFrom(SimpleEvent.class)
+                .in("title", Arrays.asList("Test", "Test1"))
+                .andNotIn("title", Arrays.asList("Test2", "Test3")).writeMetadata();
+        Assert.assertEquals("SELECT simple_event0.id as simple_event0$$id, " +
+                        "simple_event0.title as simple_event0$$title " +
+                        "FROM simple_event simple_event0 " +
+                        "WHERE ((simple_event0.title IN (?, ?) AND simple_event0.title NOT IN (?, ?)))",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(4, metadata.getParameters().size());
+        Assert.assertEquals("Test", metadata.getParameters().get(0).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(0).getType());
+        Assert.assertEquals("Test1", metadata.getParameters().get(1).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(1).getType());
+        Assert.assertEquals("Test2", metadata.getParameters().get(2).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(2).getType());
+        Assert.assertEquals("Test3", metadata.getParameters().get(3).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(3).getType());
     }
 
     @Test
