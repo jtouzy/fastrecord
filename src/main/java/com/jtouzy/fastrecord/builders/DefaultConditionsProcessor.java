@@ -96,12 +96,12 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     }
 
     @Override
-    public ConditionsProcessor in(String columnName, List<Object> values) {
+    public ConditionsProcessor in(String columnName, List<?> values) {
         return andIn(columnName, values);
     }
 
     @Override
-    public ConditionsProcessor notIn(String columnName, List<Object> values) {
+    public ConditionsProcessor notIn(String columnName, List<?> values) {
         return andNotIn(columnName, values);
     }
 
@@ -135,13 +135,13 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     }
 
     @Override
-    public ConditionsProcessor andIn(String columnName, List<Object> values) {
+    public ConditionsProcessor andIn(String columnName, List<?> values) {
         createMultipleCondition(ConditionChainOperator.AND, columnName, ConditionOperator.IN, values);
         return this;
     }
 
     @Override
-    public ConditionsProcessor andNotIn(String columnName, List<Object> values) {
+    public ConditionsProcessor andNotIn(String columnName, List<?> values) {
         createMultipleCondition(ConditionChainOperator.AND, columnName, ConditionOperator.NOT_IN, values);
         return this;
     }
@@ -171,13 +171,13 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     }
 
     @Override
-    public ConditionsProcessor orIn(String columnName, List<Object> values) {
+    public ConditionsProcessor orIn(String columnName, List<?> values) {
         createMultipleCondition(ConditionChainOperator.OR, columnName, ConditionOperator.IN, values);
         return this;
     }
 
     @Override
-    public ConditionsProcessor orNotIn(String columnName, List<Object> values) {
+    public ConditionsProcessor orNotIn(String columnName, List<?> values) {
         createMultipleCondition(ConditionChainOperator.OR, columnName, ConditionOperator.NOT_IN, values);
         return this;
     }
@@ -226,7 +226,7 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
 
     @SuppressWarnings("unchecked")
     private <C extends ConditionChain & ConditionWrapper> void createMultipleCondition(
-            ConditionChainOperator chainOperator, String columnName, ConditionOperator operator, List<Object> values) {
+            ConditionChainOperator chainOperator, String columnName, ConditionOperator operator, List<?> values) {
         if (values.isEmpty()) {
             throw new IllegalStateException("At least one value must be set for multiple conditions");
         }
@@ -236,7 +236,7 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
             initializeIfNeeded();
             ColumnDescriptor columnDescriptor = safeGetColumnDescriptor(columnName);
             checkValuesType(columnDescriptor, values);
-            List<Object> tempValues = new ArrayList<>(values);
+            List<?> tempValues = new ArrayList<>(values);
             C wrapper = createConditionWrapper(columnDescriptor, operator, tempValues.get(0));
             tempValues.remove(0);
             for (Object value : tempValues) {
@@ -258,7 +258,7 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
         return columnDescriptorOptional.get();
     }
 
-    private void checkValuesType(ColumnDescriptor descriptor, List<Object> values) {
+    private void checkValuesType(ColumnDescriptor descriptor, List<?> values) {
         Class propertyType = getPropertyType(descriptor);
         for (Object value : values) {
             checkValueType(descriptor, propertyType, value);

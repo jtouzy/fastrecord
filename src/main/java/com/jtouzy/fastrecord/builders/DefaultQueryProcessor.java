@@ -238,13 +238,13 @@ public class DefaultQueryProcessor<T>
     }
 
     @Override
-    public QueryProcessor<T> in(String columnName, List<Object> values) {
+    public QueryProcessor<T> in(String columnName, List<?> values) {
         super.in(columnName, values);
         return this;
     }
 
     @Override
-    public QueryProcessor<T> notIn(String columnName, List<Object> values) {
+    public QueryProcessor<T> notIn(String columnName, List<?> values) {
         super.notIn(columnName, values);
         return this;
     }
@@ -274,13 +274,13 @@ public class DefaultQueryProcessor<T>
     }
 
     @Override
-    public QueryProcessor<T> andIn(String columnName, List<Object> values) {
+    public QueryProcessor<T> andIn(String columnName, List<?> values) {
         super.andIn(columnName, values);
         return this;
     }
 
     @Override
-    public QueryProcessor<T> andNotIn(String columnName, List<Object> values) {
+    public QueryProcessor<T> andNotIn(String columnName, List<?> values) {
         super.andNotIn(columnName, values);
         return this;
     }
@@ -310,13 +310,13 @@ public class DefaultQueryProcessor<T>
     }
 
     @Override
-    public  QueryProcessor<T> orIn(String columnName, List<Object> values) {
+    public  QueryProcessor<T> orIn(String columnName, List<?> values) {
         super.orIn(columnName, values);
         return this;
     }
 
     @Override
-    public  QueryProcessor<T> orNotIn(String columnName, List<Object> values) {
+    public  QueryProcessor<T> orNotIn(String columnName, List<?> values) {
         super.orNotIn(columnName, values);
         return this;
     }
