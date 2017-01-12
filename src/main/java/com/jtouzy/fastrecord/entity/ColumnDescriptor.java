@@ -12,11 +12,12 @@ public class ColumnDescriptor {
     private final Method propertySetter;
     private final String columnName;
     private final boolean id;
+    private final boolean generated;
     private TypeManager typeManager;
     private ColumnDescriptor relatedColumn;
 
     public ColumnDescriptor(Field propertyField, Class propertyType, TypeManager typeManager, Method propertyGetter,
-                            Method propertySetter, String columnName, boolean id) {
+                            Method propertySetter, String columnName, boolean id, boolean generated) {
         this.propertyField = propertyField;
         this.propertyType = propertyType;
         this.typeManager = typeManager;
@@ -24,6 +25,7 @@ public class ColumnDescriptor {
         this.propertySetter = propertySetter;
         this.columnName = columnName;
         this.id = id;
+        this.generated = generated;
     }
 
     public String getPropertyName() {
@@ -64,6 +66,10 @@ public class ColumnDescriptor {
 
     public boolean isId() {
         return id;
+    }
+
+    public boolean isGenerated() {
+        return generated;
     }
 
     public boolean isRelated() {

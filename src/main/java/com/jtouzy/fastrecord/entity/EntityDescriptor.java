@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class EntityDescriptor {
@@ -75,8 +76,15 @@ public class EntityDescriptor {
     }
 
     public List<ColumnDescriptor> getIdColumnDescriptors() {
-        return columnDescriptorsByColumn.values().stream()
-                .filter(ColumnDescriptor::isId).collect(Collectors.toList());
+        return getFilteredColumnDescriptors(ColumnDescriptor::isId);
+    }
+
+    public List<ColumnDescriptor> getGeneratedColumnDescriptors() {
+        return getFilteredColumnDescriptors(ColumnDescriptor::isGenerated);
+    }
+
+    private List<ColumnDescriptor> getFilteredColumnDescriptors(Predicate<? super ColumnDescriptor> predicate) {
+        return columnDescriptorsByColumn.values().stream().filter(predicate).collect(Collectors.toList());
     }
 
     @Override

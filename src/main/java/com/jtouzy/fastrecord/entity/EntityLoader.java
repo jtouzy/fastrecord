@@ -2,11 +2,7 @@ package com.jtouzy.fastrecord.entity;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import com.jtouzy.fastrecord.annotations.Column;
-import com.jtouzy.fastrecord.annotations.Columns;
-import com.jtouzy.fastrecord.annotations.Entity;
-import com.jtouzy.fastrecord.annotations.Id;
-import com.jtouzy.fastrecord.annotations.Ignore;
+import com.jtouzy.fastrecord.annotations.*;
 import com.jtouzy.fastrecord.config.ConfigurationBased;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.types.TypeManager;
@@ -112,7 +108,8 @@ public class EntityLoader extends ConfigurationBased {
                         typeManager = typeManagerOptional.get();
                     }
                     columnDescriptor = new ColumnDescriptor(field, columnType, typeManager, getter, setter,
-                            analyzeColumnName(field), analyzeId(field));
+                            analyzeColumnName(field), analyzeId(field),
+                            field.getAnnotation(Generated.class) != null);
                     descriptor.addColumnDescriptor(columnDescriptor);
                     if (typeManager == null) {
                         laterLoading.put(descriptor.getClazz(), columnDescriptor);
@@ -293,7 +290,7 @@ public class EntityLoader extends ConfigurationBased {
                     columnDescriptor.getPropertyType(),
                     relatedEntityIdColumn.getTypeManager(),
                     columnDescriptor.getPropertyGetter(), columnDescriptor.getPropertySetter(),
-                    associatedColumn, columnDescriptor.isId());
+                    associatedColumn, columnDescriptor.isId(), columnDescriptor.isGenerated());
             newColumnDescriptor.setRelatedColumn(relatedEntityIdColumn);
             entityDescriptor.addColumnDescriptor(newColumnDescriptor);
         }
