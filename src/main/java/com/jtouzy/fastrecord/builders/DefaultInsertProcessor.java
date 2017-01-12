@@ -13,8 +13,8 @@ import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
 import com.jtouzy.fastrecord.utils.Priority;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -33,7 +33,7 @@ public class DefaultInsertProcessor<T> extends DefaultProcessor<T,InsertExpressi
     // Constructors
     // =============================================================================
 
-    @Autowired
+    @Inject
     public DefaultInsertProcessor(WriterCache writerCache, EntityPool entityPool,
                                   FastRecordConfiguration configuration) {
         super(writerCache, entityPool, configuration);

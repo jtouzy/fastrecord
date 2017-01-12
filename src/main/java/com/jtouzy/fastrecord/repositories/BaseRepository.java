@@ -6,16 +6,16 @@ import com.jtouzy.fastrecord.builders.StatementException;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.lifecycle.FastRecordInitializedEvent;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 
 public abstract class BaseRepository<T> implements Repository<T> {
-    @Autowired
+    @Inject
     private EntityPool entityPool;
-    @Autowired
+    @Inject
     protected Statement statementProcessor;
 
     protected final Class<T> entityClass;

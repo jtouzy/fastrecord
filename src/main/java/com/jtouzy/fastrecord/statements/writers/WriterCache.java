@@ -1,11 +1,11 @@
 package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.statements.context.WritableContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,7 +40,7 @@ public class WriterCache {
      * @param writerPool WriterPool instance
      * @param applicationContext Spring's ApplicationContext instance
      */
-    @Autowired
+    @Inject
     public WriterCache(WriterPool writerPool, ApplicationContext applicationContext) {
         this.writerPool = writerPool;
         this.applicationContext = applicationContext;

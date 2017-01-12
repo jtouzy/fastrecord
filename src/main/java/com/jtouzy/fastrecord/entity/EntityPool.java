@@ -3,10 +3,10 @@ package com.jtouzy.fastrecord.entity;
 import com.jtouzy.fastrecord.annotations.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -27,7 +27,7 @@ public class EntityPool {
     private final Map<Class,EntityDescriptor> entityDescriptorsByClass;
     private final EntityLoader entityLoader;
 
-    @Autowired
+    @Inject
     public EntityPool(EntityLoader entityLoader) {
         this.entityLoader = entityLoader;
         entityDescriptorsByClass = new LinkedHashMap<>();

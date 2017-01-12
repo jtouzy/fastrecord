@@ -3,9 +3,10 @@ package com.jtouzy.fastrecord.config;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
 
 @Component("FastRecord.Core.Configuration")
 public class FastRecordConfiguration {
@@ -27,7 +28,7 @@ public class FastRecordConfiguration {
     private String columnAliasSeparator;
     private boolean printSql;
 
-    @Autowired
+    @Inject
     public FastRecordConfiguration(Environment environment) {
         this.environment = environment;
         initializeProperties();

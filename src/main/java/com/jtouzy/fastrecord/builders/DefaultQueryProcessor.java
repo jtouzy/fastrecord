@@ -29,8 +29,8 @@ import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.writers.WriterCache;
 import com.jtouzy.fastrecord.utils.Priority;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.inject.Inject;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -58,7 +58,7 @@ public class DefaultQueryProcessor<T>
     // Constructors
     // =============================================================================
 
-    @Autowired
+    @Inject
     public DefaultQueryProcessor(WriterCache writerCache, EntityPool entityPool,
                                  FastRecordConfiguration configuration) {
         super(writerCache, entityPool, configuration);

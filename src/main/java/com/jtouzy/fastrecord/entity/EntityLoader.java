@@ -9,10 +9,10 @@ import com.jtouzy.fastrecord.entity.types.TypeManager;
 import com.jtouzy.fastrecord.entity.types.TypeManagerPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -43,13 +43,12 @@ public class EntityLoader extends ConfigurationBased {
     private static final Logger logger = LoggerFactory.getLogger(EntityLoader.class);
     private final LinkedHashMap<Class,EntityDescriptor> entityDescriptorsByClass;
     private final Multimap<Class,ColumnDescriptor> laterLoading = ArrayListMultimap.create();
+    private final TypeManagerPool typeManagerPool;
 
-    @Autowired
-    private TypeManagerPool typeManagerPool;
-
-    @Autowired
-    public EntityLoader(FastRecordConfiguration configuration) {
+    @Inject
+    public EntityLoader(TypeManagerPool typeManagerPool, FastRecordConfiguration configuration) {
         super(configuration);
+        this.typeManagerPool = typeManagerPool;
         entityDescriptorsByClass = new LinkedHashMap<>();
     }
 

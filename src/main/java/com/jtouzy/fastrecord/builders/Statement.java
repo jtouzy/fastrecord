@@ -9,10 +9,10 @@ import com.jtouzy.fastrecord.statements.context.WritableContext;
 import com.jtouzy.fastrecord.utils.Priority;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +23,7 @@ public class Statement {
     // TODO separate WriteProcessors and QueryProcessors to auto-check types at compile and avoid dirty casting
     private final Map<Class<? extends WritableContext>,Class<? extends Processor>> processorsByClass;
 
-    @Autowired
+    @Inject
     public Statement(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.processorsByClass = new HashMap<>();
