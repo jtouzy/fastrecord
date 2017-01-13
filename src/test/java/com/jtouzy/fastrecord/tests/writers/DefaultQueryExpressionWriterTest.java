@@ -1,10 +1,12 @@
 package com.jtouzy.fastrecord.tests.writers;
 
+import com.jtouzy.fastrecord.statements.context.AggregateFunctionType;
 import com.jtouzy.fastrecord.statements.context.AliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.AliasTableExpression;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import com.jtouzy.fastrecord.statements.context.QueryWrapper;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAggregateFunctionExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryColumnExpressionWrapper;
@@ -42,6 +44,29 @@ public class DefaultQueryExpressionWriterTest extends AbstractWriterTest<QueryEx
         DbReadyStatementMetadata metadata = getWriterResult(queryExpression);
 
         Assert.assertEquals("SELECT table_alias.column_name as column_alias FROM table_name table_alias",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(0, metadata.getParameters().size());
+    }
+
+    @Test
+    public void querySingleAggregateSingleTargetWithoutConditionTest()
+    throws Exception {
+        QueryExpression queryExpression = new DefaultQueryExpression(
+                new DefaultQueryTargetExpressionWrapper(
+                        "table_alias",
+                        new DefaultSimpleTableExpression("table_name")));
+        queryExpression.getColumns().add(
+                new DefaultQueryColumnExpressionWrapper(
+                        "column_alias",
+                        new DefaultAggregateFunctionExpression(
+                                AggregateFunctionType.COUNT,
+                                new DefaultAliasTableColumnExpression(Types.VARCHAR,
+                                        new DefaultAliasTableExpression("table_name", "table_alias"),
+                                        "column_name"))));
+        DbReadyStatementMetadata metadata = getWriterResult(queryExpression);
+
+        Assert.assertEquals("SELECT COUNT(table_alias.column_name) as column_alias " +
+                        "FROM table_name table_alias",
                 metadata.getSqlString().toString());
         Assert.assertEquals(0, metadata.getParameters().size());
     }
