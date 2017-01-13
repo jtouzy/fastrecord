@@ -9,6 +9,7 @@ import com.jtouzy.fastrecord.entity.ColumnNotFoundException;
 import com.jtouzy.fastrecord.entity.EntityDefinitionException;
 import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
+import com.jtouzy.fastrecord.statements.context.AggregateFunctionType;
 import com.jtouzy.fastrecord.statements.context.ConditionChain;
 import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionOperator;
@@ -16,6 +17,7 @@ import com.jtouzy.fastrecord.statements.context.ConditionWrapper;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
 import com.jtouzy.fastrecord.statements.context.QueryConditionChain;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultAggregateFunctionExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
@@ -105,6 +107,16 @@ public class DefaultQueryProcessor<T>
     }
 
     @Override
+    public Integer count() {
+        return count(getEntityDescriptor().getIdColumnDescriptors().get(0));
+    }
+
+    @Override
+    public Integer count(String columnName) {
+        return count(safeGetColumnDescriptor(columnName));
+    }
+
+    @Override
     public Optional<T> findFirst() {
         List<T> results = findAll();
         if (results.isEmpty()) {
@@ -120,11 +132,7 @@ public class DefaultQueryProcessor<T>
         printSql(metadata);
         try (Connection connection = getDataSource().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sqlString)) {
-            int index = 1;
-            for (DbReadyStatementParameter parameter : metadata.getParameters()) {
-                preparedStatement.setObject(index, parameter.getValue(), parameter.getType());
-                index ++;
-            }
+            appendParameters(metadata, preparedStatement);
             try (ResultSet rs = preparedStatement.executeQuery()) {
                 ResultSetObjectMaker<T> objectMaker = new ResultSetObjectMaker<>(getConfiguration(), getExpression(),
                         getEntityDescriptorsByAlias(), columnDescriptorAliasMapping, rs);
@@ -472,5 +480,42 @@ public class DefaultQueryProcessor<T>
                                 entityDescriptor.getTableName(),
                                 alias.get()),
                         columnDescriptor.getColumnName()));
+    }
+
+    private void appendParameters(DbReadyStatementMetadata metadata, PreparedStatement preparedStatement)
+    throws SQLException {
+        int index = 1;
+        for (DbReadyStatementParameter parameter : metadata.getParameters()) {
+            preparedStatement.setObject(index, parameter.getValue(), parameter.getType());
+            index ++;
+        }
+    }
+
+    private Integer count(ColumnDescriptor columnDescriptor) {
+        getExpression().getColumns().clear();
+        getExpression().getColumns().add(
+                new DefaultQueryColumnExpressionWrapper(
+                        null,
+                        new DefaultAggregateFunctionExpression(
+                                AggregateFunctionType.COUNT,
+                                new DefaultAliasTableColumnExpression(
+                                        columnDescriptor.getColumnType(),
+                                        new DefaultAliasTableExpression(
+                                                getEntityDescriptor().getTableName(),
+                                                getFirstEntityDescriptorAlias()),
+                                        columnDescriptor.getColumnName()))));
+        DbReadyStatementMetadata metadata = writeMetadata();
+        String sqlString = metadata.getSqlString().toString();
+        printSql(metadata);
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlString)) {
+            appendParameters(metadata, preparedStatement);
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            throw new QueryException(ex);
+        }
     }
 }

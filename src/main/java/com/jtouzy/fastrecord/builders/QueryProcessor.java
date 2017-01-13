@@ -13,6 +13,8 @@ public interface QueryProcessor<T> extends ConditionsProcessor<T,QueryExpression
     QueryProcessor<T> orderBy(String columnName);
     QueryProcessor<T> orderBy(Class entityClass, String columnName);
 
+    Integer count();
+    Integer count(String columnName);
     Optional<T> findFirst();
     List<T> findAll();
 

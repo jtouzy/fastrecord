@@ -190,6 +190,15 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
         this.mainConditionChain = mainConditionChain;
     }
 
+    protected ColumnDescriptor safeGetColumnDescriptor(String columnName) {
+        Optional<ColumnDescriptor> columnDescriptorOptional =
+                getEntityDescriptor().getColumnDescriptorByColumn(columnName);
+        if (!columnDescriptorOptional.isPresent()) {
+            throw new ColumnNotFoundException(columnName, getEntityDescriptor().getClazz());
+        }
+        return columnDescriptorOptional.get();
+    }
+
     // =============================================================================
     // Private methods
     // =============================================================================
@@ -247,15 +256,6 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
             }
             ConditionsHelper.addCondition(currentConditionChain, chainOperator, wrapper);
         }
-    }
-
-    private ColumnDescriptor safeGetColumnDescriptor(String columnName) {
-        Optional<ColumnDescriptor> columnDescriptorOptional =
-                getEntityDescriptor().getColumnDescriptorByColumn(columnName);
-        if (!columnDescriptorOptional.isPresent()) {
-            throw new ColumnNotFoundException(columnName, getEntityDescriptor().getClazz());
-        }
-        return columnDescriptorOptional.get();
     }
 
     private void checkValuesType(ColumnDescriptor descriptor, List<?> values) {
