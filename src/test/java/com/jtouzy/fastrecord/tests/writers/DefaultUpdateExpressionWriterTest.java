@@ -33,7 +33,7 @@ public class DefaultUpdateExpressionWriterTest
                         new DefaultConstantExpression(Types.VARCHAR, "condition_where")));
         DbReadyStatementMetadata metadata = getWriterResult(expression);
 
-        Assert.assertEquals("UPDATE table_name SET table_name.column_name = ? " +
+        Assert.assertEquals("UPDATE table_name SET column_name = ? " +
                         "WHERE (table_name.column_where = ?)",
                 metadata.getSqlString().toString());
         Assert.assertEquals(2, metadata.getParameters().size());

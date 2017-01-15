@@ -83,7 +83,7 @@ public class DefaultUpdateProcessor<T> extends DefaultWriteProcessor<T,UpdateExp
 
     private Object getFinalValue(Object target, ColumnDescriptor columnDescriptor) {
         if (columnDescriptor.isRelated()) {
-            return getFinalValue(getObjectValue(target, columnDescriptor), columnDescriptor);
+            return getFinalValue(getObjectValue(target, columnDescriptor), columnDescriptor.getRelatedColumn());
         } else {
             return getObjectValue(target, columnDescriptor);
         }

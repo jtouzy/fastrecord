@@ -22,8 +22,9 @@ public class DefaultUpdateExpressionWriter extends AbstractConditionChainHolderW
         Map.Entry<SimpleTableColumnExpression,UpdateValueExpression> valueEntry;
         while (it.hasNext()) {
             valueEntry = it.next();
-            mergeWriter(valueEntry.getKey());
-            metadata.getSqlString().append(" = ");
+            // Cannot call mergeWriter because of table_name, it will be added and we don't
+            // want table alias in UPDATE expressions
+            getResult().getSqlString().append(valueEntry.getKey().getColumn()).append(" = ");
             mergeWriter(valueEntry.getValue());
             if (it.hasNext()) {
                 metadata.getSqlString().append(", ");

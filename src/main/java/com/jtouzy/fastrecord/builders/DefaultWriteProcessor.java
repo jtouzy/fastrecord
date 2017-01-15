@@ -95,8 +95,8 @@ public abstract class DefaultWriteProcessor<T,E extends WritableContext & WriteE
     protected Object getObjectValue(Object target, ColumnDescriptor columnDescriptor) {
         try {
             return columnDescriptor.getPropertyGetter().invoke(target);
-        } catch (InvocationTargetException | IllegalAccessException ex) {
-            throw new ObjectReadException(ex);
+        } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException ex) {
+            throw new ObjectReadException("Error when read " + columnDescriptor.getPropertyName() + " on object " + target, ex);
         }
     }
 

@@ -14,7 +14,7 @@ public class UpdateBuilderTest extends AbstractBuilderTest {
         simpleEvent.setId(1);
         simpleEvent.setTitle("Test");
         DbReadyStatementMetadata metadata = statementProcessor.update(simpleEvent).writeMetadata();
-        Assert.assertEquals("UPDATE simple_event SET simple_event.id = ?, simple_event.title = ? " +
+        Assert.assertEquals("UPDATE simple_event SET id = ?, title = ? " +
                         "WHERE (simple_event.id = ?)", metadata.getSqlString().toString());
         Assert.assertEquals(3, metadata.getParameters().size());
         Assert.assertEquals("1", metadata.getParameters().get(0).getValue());

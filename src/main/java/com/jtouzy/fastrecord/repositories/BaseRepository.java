@@ -46,6 +46,12 @@ public abstract class BaseRepository<T> implements Repository<T> {
         return object;
     }
 
+    @Override
+    public T update(T object) throws StatementException {
+        statementProcessor.update(object).execute();
+        return object;
+    }
+
     protected QueryProcessor<T> improveQuery(QueryProcessor<T> query) {
         return query;
     }
