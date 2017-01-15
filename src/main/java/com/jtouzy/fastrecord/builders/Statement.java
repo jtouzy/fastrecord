@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.jtouzy.fastrecord.annotations.support.Process;
 import com.jtouzy.fastrecord.statements.context.InsertExpression;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
+import com.jtouzy.fastrecord.statements.context.UpdateExpression;
 import com.jtouzy.fastrecord.statements.context.WritableContext;
 import com.jtouzy.fastrecord.utils.Priority;
 import org.slf4j.Logger;
@@ -70,6 +71,20 @@ public class Statement {
         Class<? extends InsertProcessor<T>> processorClass =
                 (Class<? extends InsertProcessor<T>>)processorsByClass.get(InsertExpression.class);
         InsertProcessor<T> processor = applicationContext.getBean(processorClass);
+        processor.initWriteProcessor(entityClass, target);
+        return processor;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> UpdateProcessor<T> update(T target) {
+        return update((Class<T>)target.getClass(), target);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> UpdateProcessor<T> update(Class<T> entityClass, T target) {
+        Class<? extends UpdateProcessor<T>> processorClass =
+                (Class<? extends UpdateProcessor<T>>)processorsByClass.get(UpdateExpression.class);
+        UpdateProcessor<T> processor = applicationContext.getBean(processorClass);
         processor.initWriteProcessor(entityClass, target);
         return processor;
     }

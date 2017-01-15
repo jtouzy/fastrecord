@@ -3,5 +3,5 @@ package com.jtouzy.fastrecord.statements.context;
 import java.util.Map;
 
 public interface InsertExpression extends WriteExpression {
-    Map<SimpleTableColumnExpression,String> getValues();
+    Map<SimpleTableColumnExpression, ConstantExpression> getValues();
 }

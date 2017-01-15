@@ -1,9 +1,9 @@
 package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.annotations.support.Writes;
+import com.jtouzy.fastrecord.statements.context.ConstantExpression;
 import com.jtouzy.fastrecord.statements.context.InsertExpression;
 import com.jtouzy.fastrecord.statements.context.SimpleTableColumnExpression;
-import com.jtouzy.fastrecord.statements.processing.BaseDbReadyStatementParameter;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.utils.Priority;
 
@@ -18,21 +18,27 @@ public class DefaultInsertExpressionWriter extends AbstractWriter<InsertExpressi
         metadata.getSqlString().append("INSERT INTO ");
         mergeWriter(getContext().getTarget());
         metadata.getSqlString().append(" (");
-        Iterator<Map.Entry<SimpleTableColumnExpression,String>> it = getContext().getValues().entrySet().iterator();
-        Map.Entry<SimpleTableColumnExpression,String> valueEntry;
-        StringBuilder columnsString = new StringBuilder();
-        StringBuilder valuesString = new StringBuilder();
+        Iterator<Map.Entry<SimpleTableColumnExpression,ConstantExpression>> it =
+                getContext().getValues().entrySet().iterator();
+        Map.Entry<SimpleTableColumnExpression,ConstantExpression> valueEntry;
         while (it.hasNext()) {
             valueEntry = it.next();
-            columnsString.append(valueEntry.getKey().getColumn());
-            valuesString.append("?");
-            metadata.getParameters().add(
-                    new BaseDbReadyStatementParameter(valueEntry.getValue(), valueEntry.getKey().getType()));
+            // Cannot call mergeWriter because of table_name, it will be added and we don't
+            // want table alias in INSERT expressions
+            getResult().getSqlString().append(valueEntry.getKey().getColumn());
             if (it.hasNext()) {
-                columnsString.append(", ");
-                valuesString.append(", ");
+                getResult().getSqlString().append(", ");
             }
         }
-        metadata.getSqlString().append(columnsString).append(") VALUES (").append(valuesString).append(")");
+        metadata.getSqlString().append(") VALUES (");
+        it = getContext().getValues().entrySet().iterator();
+        while (it.hasNext()) {
+            valueEntry = it.next();
+            mergeWriter(valueEntry.getValue());
+            if (it.hasNext()) {
+                getResult().getSqlString().append(", ");
+            }
+        }
+        metadata.getSqlString().append(")");
     }
 }

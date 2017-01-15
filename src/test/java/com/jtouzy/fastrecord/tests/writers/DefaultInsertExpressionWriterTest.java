@@ -2,6 +2,7 @@ package com.jtouzy.fastrecord.tests.writers;
 
 import com.jtouzy.fastrecord.statements.context.InsertExpression;
 import com.jtouzy.fastrecord.statements.context.SimpleTableExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultInsertExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpression;
@@ -26,7 +27,7 @@ public class DefaultInsertExpressionWriterTest
         InsertExpression expression = new DefaultInsertExpression(tableExpression);
         expression.getValues().put(
                 new DefaultSimpleTableColumnExpression(Types.VARCHAR, tableExpression, "column_name"),
-                "column_value");
+                new DefaultConstantExpression(Types.VARCHAR, "column_value"));
         DbReadyStatementMetadata metadata = getWriterResult(expression);
 
         Assert.assertEquals("INSERT INTO table_name (column_name) VALUES (?)",
@@ -43,10 +44,10 @@ public class DefaultInsertExpressionWriterTest
         InsertExpression expression = new DefaultInsertExpression(tableExpression);
         expression.getValues().put(
                 new DefaultSimpleTableColumnExpression(Types.VARCHAR, tableExpression, "column_name"),
-                "column_value");
+                new DefaultConstantExpression(Types.VARCHAR, "column_value"));
         expression.getValues().put(
                 new DefaultSimpleTableColumnExpression(Types.INTEGER, tableExpression, "column_name2"),
-                "2");
+                new DefaultConstantExpression(Types.INTEGER, "2"));
         DbReadyStatementMetadata metadata = getWriterResult(expression);
 
         Assert.assertEquals("INSERT INTO table_name (column_name, column_name2) VALUES (?, ?)",
