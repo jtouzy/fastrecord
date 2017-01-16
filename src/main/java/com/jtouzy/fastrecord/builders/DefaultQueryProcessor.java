@@ -427,6 +427,7 @@ public class DefaultQueryProcessor<T>
         ConditionsHelper.addCondition(getExpression().getConditionChain(), ConditionChainOperator.AND, conditionChain);
         QueryConditionChain condition;
         List<ColumnDescriptor> associatedColumnDescriptors;
+        columnDescriptorAliasMapping.put(originAlias, columnRelatedToFilled, tableAlias);
         // Iterate over the related Entity ID columns
         for (ColumnDescriptor relatedIdColumn : idColumns) {
             // Get the origin columns related to the destination ID column
@@ -446,7 +447,6 @@ public class DefaultQueryProcessor<T>
                 associatedColumnDescriptor = associatedColumnDescriptors.get(0);
             }
             // Condition creation
-            columnDescriptorAliasMapping.put(originAlias, associatedColumnDescriptor, tableAlias);
             condition = new DefaultQueryConditionWrapper(
                     new DefaultAliasTableColumnExpression(
                             associatedColumnDescriptor.getColumnType(),
