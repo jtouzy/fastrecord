@@ -63,15 +63,14 @@ public class ResultSetObjectMaker<T> {
                 logger.debug("Start creating result object for row...");
                 results.add((T)createObjectFromAlias(mainTableAlias));
             }
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | SQLException ex) {
-            // TODO IllegalArgumentException if argument type mismatch + Other exceptions?
+        } catch (InstantiationException | IllegalAccessException | SQLException ex) {
             throw new ObjectCreationException(ex);
         }
         return results;
     }
 
     private Object createObjectFromAlias(String tableAlias)
-    throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    throws IllegalAccessException, InstantiationException {
         EntityDescriptor entityDescriptor = entityDescriptorsByAlias.get(tableAlias);
         Object instance = currentRowAliasInstanceMapping.get(tableAlias);
         if (instance == null) {
@@ -101,7 +100,7 @@ public class ResultSetObjectMaker<T> {
     }
 
     private void setPropertyValue(String tableAlias, Object instance, ColumnDescriptor columnDescriptor, Object valueToSet)
-    throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    throws InstantiationException, IllegalAccessException {
         if (columnDescriptor.isRelated()) {
             Object relatedInstance = currentRowInstanceCache.get(instance, columnDescriptor.getPropertyName());
             String alias = columnDescriptorAliasMapping.get(tableAlias, columnDescriptor);
@@ -126,15 +125,18 @@ public class ResultSetObjectMaker<T> {
         return clazz.newInstance();
     }
 
-    private void invokeSetterWithConversion(ColumnDescriptor columnDescriptor, Object instance, Object valueToSet)
-    throws InvocationTargetException, IllegalAccessException {
+    private void invokeSetterWithConversion(ColumnDescriptor columnDescriptor, Object instance, Object valueToSet) {
         invokeSetter(columnDescriptor, instance, columnDescriptor.getTypeManager().convertToObject(valueToSet));
     }
 
-    private void invokeSetter(ColumnDescriptor columnDescriptor, Object instance, Object valueToSet)
-    throws InvocationTargetException, IllegalAccessException {
-        logger.debug("Invoke on [{}], [{}] with [{}]", instance,
-                columnDescriptor.getPropertySetter().getName(), valueToSet);
-        columnDescriptor.getPropertySetter().invoke(instance, valueToSet);
+    private void invokeSetter(ColumnDescriptor columnDescriptor, Object instance, Object valueToSet) {
+        try {
+            logger.debug("Invoke on [{}], [{}] with [{}]", instance,
+                    columnDescriptor.getPropertySetter().getName(), valueToSet);
+            columnDescriptor.getPropertySetter().invoke(instance, valueToSet);
+        } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException ex) {
+            throw new ObjectCreationException("Error when write " + columnDescriptor.getPropertyName() + " on object "
+                    + instance + " with value " + valueToSet, ex);
+        }
     }
 }
