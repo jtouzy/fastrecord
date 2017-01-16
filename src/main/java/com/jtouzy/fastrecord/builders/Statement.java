@@ -3,6 +3,7 @@ package com.jtouzy.fastrecord.builders;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.jtouzy.fastrecord.annotations.support.Process;
+import com.jtouzy.fastrecord.statements.context.DeleteExpression;
 import com.jtouzy.fastrecord.statements.context.InsertExpression;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import com.jtouzy.fastrecord.statements.context.UpdateExpression;
@@ -85,6 +86,20 @@ public class Statement {
         Class<? extends UpdateProcessor<T>> processorClass =
                 (Class<? extends UpdateProcessor<T>>)processorsByClass.get(UpdateExpression.class);
         UpdateProcessor<T> processor = applicationContext.getBean(processorClass);
+        processor.initWriteProcessor(entityClass, target);
+        return processor;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> DeleteProcessor<T> delete(T target) {
+        return delete((Class<T>)target.getClass(), target);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> DeleteProcessor<T> delete(Class<T> entityClass, T target) {
+        Class<? extends DeleteProcessor<T>> processorClass =
+                (Class<? extends DeleteProcessor<T>>)processorsByClass.get(DeleteExpression.class);
+        DeleteProcessor<T> processor = applicationContext.getBean(processorClass);
         processor.initWriteProcessor(entityClass, target);
         return processor;
     }
