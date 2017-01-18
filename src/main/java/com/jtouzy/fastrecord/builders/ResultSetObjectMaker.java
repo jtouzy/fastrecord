@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,12 +51,13 @@ public class ResultSetObjectMaker<T> {
             String columnLabel;
             logger.debug("Start creating result objects...");
             String mainTableAlias = queryContext.getMainTargetExpression().getAlias();
+            ResultSetMetaData metaData = resultSet.getMetaData();
             while (resultSet.next()) {
                 currentRowValues.clear();
                 currentRowInstanceCache.clear();
-                for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i ++) {
+                for (int i = 1; i <= metaData.getColumnCount(); i ++) {
                     // Access to the column label : tableAlias0$$tableColumn
-                    columnLabel = resultSet.getMetaData().getColumnLabel(i);
+                    columnLabel = metaData.getColumnLabel(i);
                     // Stores the value in the value Map
                     currentRowValues.put(columnLabel, resultSet.getObject(columnLabel));
                 }
