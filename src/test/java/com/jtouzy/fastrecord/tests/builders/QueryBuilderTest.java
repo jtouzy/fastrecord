@@ -26,6 +26,20 @@ public class QueryBuilderTest extends AbstractBuilderTest {
     }
 
     @Test
+    public void singleConditionOnJoinEntityQueryBuilderTest() throws Exception {
+        DbReadyStatementMetadata metadata = statementProcessor.queryFrom(Event.class).fill(Category.class)
+                .eq(Category.class, "title", "Test").writeMetadata();
+        Assert.assertEquals("SELECT event0.id as event0$$id, event0.category as event0$$category, " +
+                        "event0.title as event0$$title, category0.title as category0$$title " +
+                        "FROM event event0, category category0 " +
+                        "WHERE ((event0.category = category0.id) AND (category0.title = ?))",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(1, metadata.getParameters().size());
+        Assert.assertEquals("Test", metadata.getParameters().get(0).getValue());
+        Assert.assertEquals(Types.VARCHAR, metadata.getParameters().get(0).getType());
+    }
+
+    @Test
     public void twoConditionsQueryBuilderTest() throws Exception {
         DbReadyStatementMetadata metadata = statementProcessor.queryFrom(SimpleEvent.class)
                 .eq("title", "Test2").andEq("id", 1).writeMetadata();

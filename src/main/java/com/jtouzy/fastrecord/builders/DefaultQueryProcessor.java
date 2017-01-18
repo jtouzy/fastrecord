@@ -164,13 +164,18 @@ public class DefaultQueryProcessor<T>
     @Override
     @SuppressWarnings("unchecked")
     protected <C extends ConditionChain & ConditionWrapper> C createConditionWrapper(
-            ColumnDescriptor columnDescriptor, ConditionOperator operator, Object value) {
+            EntityDescriptor entityDescriptor, ColumnDescriptor columnDescriptor,
+            ConditionOperator operator, Object value) {
+        Optional<String> aliasOptional = findEntityDescriptorAlias(entityDescriptor);
+        if (!aliasOptional.isPresent())
+            throw new IllegalStateException("EntityDescriptor with table name [" + entityDescriptor.getTableName()
+                    + "] must have an alias registered");
         return (C)new DefaultQueryConditionWrapper(
                 new DefaultAliasTableColumnExpression(
                         columnDescriptor.getColumnType(),
                         new DefaultAliasTableExpression(
-                                getEntityDescriptor().getTableName(),
-                                getFirstEntityDescriptorAlias()),
+                                entityDescriptor.getTableName(),
+                                aliasOptional.get()),
                         columnDescriptor.getColumnName()),
                 operator,
                 new DefaultConstantExpression(
@@ -218,6 +223,108 @@ public class DefaultQueryProcessor<T>
     @Override
     public QueryProcessor<T> end() {
         super.end();
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> eq(Class entityClass, String columnName, Object value) {
+        return andEq(entityClass, columnName, value);
+    }
+
+    @Override
+    public QueryProcessor<T> notEq(Class entityClass, String columnName, Object value) {
+        return andNotEq(entityClass, columnName, value);
+    }
+
+    @Override
+    public QueryProcessor<T> like(Class entityClass, String columnName, Object value) {
+        return andLike(entityClass, columnName, value);
+    }
+
+    @Override
+    public QueryProcessor<T> in(Class entityClass, String columnName, List<?> values) {
+        return andIn(entityClass, columnName, values);
+    }
+
+    @Override
+    public QueryProcessor<T> notIn(Class entityClass, String columnName, List<?> values) {
+        return andNotIn(entityClass, columnName, values);
+    }
+
+    @Override
+    public QueryProcessor<T> notLike(Class entityClass, String columnName, Object value) {
+        return andNotLike(entityClass, columnName, value);
+    }
+
+    @Override
+    public QueryProcessor<T> andEq(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.AND, columnName, ConditionOperator.EQUALS, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andNotEq(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.AND, columnName, ConditionOperator.NOT_EQUALS, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andLike(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.AND, columnName, ConditionOperator.LIKE, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andNotLike(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.AND, columnName, ConditionOperator.NOT_LIKE, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andIn(Class entityClass, String columnName, List<?> values) {
+        createMultipleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.AND, columnName, ConditionOperator.IN, values);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andNotIn(Class entityClass, String columnName, List<?> values) {
+        createMultipleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.AND, columnName, ConditionOperator.NOT_IN, values);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orEq(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.OR, columnName, ConditionOperator.EQUALS, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orNotEq(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.OR, columnName, ConditionOperator.NOT_EQUALS, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orLike(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.OR, columnName, ConditionOperator.LIKE, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orNotLike(Class entityClass, String columnName, Object value) {
+        createSimpleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.OR, columnName, ConditionOperator.NOT_LIKE, value);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orIn(Class entityClass, String columnName, List<?> values) {
+        createMultipleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.OR, columnName, ConditionOperator.IN, values);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orNotIn(Class entityClass, String columnName, List<?> values) {
+        createMultipleCondition(findEntityDescriptorWithClass(entityClass), ConditionChainOperator.OR, columnName, ConditionOperator.NOT_IN, values);
         return this;
     }
 

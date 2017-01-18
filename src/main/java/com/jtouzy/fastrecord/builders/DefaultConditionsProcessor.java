@@ -3,6 +3,7 @@ package com.jtouzy.fastrecord.builders;
 import com.jtouzy.fastrecord.config.FastRecordConfiguration;
 import com.jtouzy.fastrecord.entity.ColumnDescriptor;
 import com.jtouzy.fastrecord.entity.ColumnNotFoundException;
+import com.jtouzy.fastrecord.entity.EntityDescriptor;
 import com.jtouzy.fastrecord.entity.EntityPool;
 import com.jtouzy.fastrecord.statements.context.ConditionChain;
 import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
@@ -44,7 +45,8 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
 
     protected abstract ConditionChain createDefaultConditionChain();
     protected abstract <C extends ConditionChain & ConditionWrapper> C createConditionWrapper(
-            ColumnDescriptor columnDescriptor, ConditionOperator operator, Object value);
+            EntityDescriptor entityDescriptor, ColumnDescriptor columnDescriptor,
+            ConditionOperator operator, Object value);
 
     // =============================================================================
     // Interface overrides
@@ -191,12 +193,53 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     }
 
     protected ColumnDescriptor safeGetColumnDescriptor(String columnName) {
+        return safeGetColumnDescriptor(getEntityDescriptor(), columnName);
+    }
+
+    protected ColumnDescriptor safeGetColumnDescriptor(EntityDescriptor entityDescriptor, String columnName) {
         Optional<ColumnDescriptor> columnDescriptorOptional =
-                getEntityDescriptor().getColumnDescriptorByColumn(columnName);
+                entityDescriptor.getColumnDescriptorByColumn(columnName);
         if (!columnDescriptorOptional.isPresent()) {
-            throw new ColumnNotFoundException(columnName, getEntityDescriptor().getClazz());
+            throw new ColumnNotFoundException(columnName, entityDescriptor.getClazz());
         }
         return columnDescriptorOptional.get();
+    }
+
+    protected void createSimpleCondition(EntityDescriptor entityDescriptor,
+                                         ConditionChainOperator chainOperator, String columnName,
+                                         ConditionOperator operator, Object value) {
+        initializeIfNeeded();
+        ColumnDescriptor columnDescriptor = safeGetColumnDescriptor(entityDescriptor, columnName);
+        checkValueType(columnDescriptor, getPropertyType(columnDescriptor), value);
+
+        ConditionChain wrapper = createConditionWrapper(entityDescriptor, columnDescriptor, operator, value);
+        ConditionsHelper.addCondition(currentConditionChain, chainOperator, wrapper);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <C extends ConditionChain & ConditionWrapper> void createMultipleCondition(
+            EntityDescriptor entityDescriptor, ConditionChainOperator chainOperator, String columnName,
+            ConditionOperator operator, List<?> values) {
+        if (values.isEmpty()) {
+            throw new IllegalStateException("At least one value must be set for multiple conditions");
+        }
+        if (values.size() == 1) {
+            createSimpleCondition(entityDescriptor, chainOperator, columnName, ConditionOperator.EQUALS, values.get(0));
+        } else {
+            initializeIfNeeded();
+            ColumnDescriptor columnDescriptor = safeGetColumnDescriptor(entityDescriptor, columnName);
+            checkValuesType(columnDescriptor, values);
+            List<?> tempValues = new ArrayList<>(values);
+            C wrapper = createConditionWrapper(entityDescriptor, columnDescriptor, operator, tempValues.get(0));
+            tempValues.remove(0);
+            for (Object value : tempValues) {
+                wrapper.getCompareConditionExpressions().add(
+                        new DefaultConstantExpression(
+                                columnDescriptor.getColumnType(),
+                                columnDescriptor.getTypeManager().convertToDatabase(value)));
+            }
+            ConditionsHelper.addCondition(currentConditionChain, chainOperator, wrapper);
+        }
     }
 
     // =============================================================================
@@ -225,37 +268,13 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     @SuppressWarnings("unchecked")
     private void createSimpleCondition(ConditionChainOperator chainOperator, String columnName,
                                        ConditionOperator operator, Object value) {
-        initializeIfNeeded();
-        ColumnDescriptor columnDescriptor = safeGetColumnDescriptor(columnName);
-        checkValueType(columnDescriptor, getPropertyType(columnDescriptor), value);
-
-        ConditionChain wrapper = createConditionWrapper(columnDescriptor, operator, value);
-        ConditionsHelper.addCondition(currentConditionChain, chainOperator, wrapper);
+        createSimpleCondition(getEntityDescriptor(), chainOperator, columnName, operator, value);
     }
 
     @SuppressWarnings("unchecked")
     private <C extends ConditionChain & ConditionWrapper> void createMultipleCondition(
             ConditionChainOperator chainOperator, String columnName, ConditionOperator operator, List<?> values) {
-        if (values.isEmpty()) {
-            throw new IllegalStateException("At least one value must be set for multiple conditions");
-        }
-        if (values.size() == 1) {
-            createSimpleCondition(chainOperator, columnName, ConditionOperator.EQUALS, values.get(0));
-        } else {
-            initializeIfNeeded();
-            ColumnDescriptor columnDescriptor = safeGetColumnDescriptor(columnName);
-            checkValuesType(columnDescriptor, values);
-            List<?> tempValues = new ArrayList<>(values);
-            C wrapper = createConditionWrapper(columnDescriptor, operator, tempValues.get(0));
-            tempValues.remove(0);
-            for (Object value : tempValues) {
-                wrapper.getCompareConditionExpressions().add(
-                        new DefaultConstantExpression(
-                                columnDescriptor.getColumnType(),
-                                columnDescriptor.getTypeManager().convertToDatabase(value)));
-            }
-            ConditionsHelper.addCondition(currentConditionChain, chainOperator, wrapper);
-        }
+        createMultipleCondition(getEntityDescriptor(), chainOperator, columnName, operator, values);
     }
 
     private void checkValuesType(ColumnDescriptor descriptor, List<?> values) {

@@ -25,6 +25,25 @@ public interface QueryProcessor<T> extends ConditionsProcessor<T,QueryExpression
     @Override QueryProcessor<T> or();
     @Override QueryProcessor<T> end();
 
+    QueryProcessor<T> eq(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> notEq(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> like(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> notLike(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> in(Class entityClass, String columnName, List<?> value);
+    QueryProcessor<T> notIn(Class entityClass, String columnName, List<?> value);
+    QueryProcessor<T> andEq(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> andNotEq(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> andLike(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> andNotLike(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> andIn(Class entityClass, String columnName, List<?> value);
+    QueryProcessor<T> andNotIn(Class entityClass, String columnName, List<?> value);
+    QueryProcessor<T> orEq(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> orNotEq(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> orLike(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> orNotLike(Class entityClass, String columnName, Object value);
+    QueryProcessor<T> orIn(Class entityClass, String columnName, List<?> value);
+    QueryProcessor<T> orNotIn(Class entityClass, String columnName, List<?> value);
+
     @Override QueryProcessor<T> eq(String columnName, Object value);
     @Override QueryProcessor<T> notEq(String columnName, Object value);
     @Override QueryProcessor<T> like(String columnName, Object value);
