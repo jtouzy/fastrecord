@@ -52,6 +52,11 @@ public abstract class BaseRepository<T> implements Repository<T> {
         return object;
     }
 
+    @Override
+    public void delete(T object) throws StatementException {
+        statementProcessor.delete(object).execute();
+    }
+
     protected QueryProcessor<T> improveQuery(QueryProcessor<T> query) {
         return query;
     }
