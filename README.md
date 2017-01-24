@@ -35,6 +35,14 @@ Statement statementProcessor;
 
 // Find all events (SELECT event.id, event.title FROM event)
 List<Event> events = statementProcessor.queryFrom(Event.class).findAll();
+// Insert new event
+Event event = new Event();
+statementProcessor.insert(event).execute();
+// Update event
+event = statementProcessor.queryFrom(Event.class).eq("event_id", 1).findOne();
+statementProcessor.update(event).execute();
+// Delete event
+statementProcessor.delete(event).execute();
 ```
 
 ## Repositories example
