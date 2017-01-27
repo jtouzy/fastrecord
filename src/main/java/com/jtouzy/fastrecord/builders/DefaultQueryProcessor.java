@@ -153,7 +153,8 @@ public class DefaultQueryProcessor<T>
         return new DefaultQueryExpression(
                 new DefaultQueryTargetExpressionWrapper(
                         firstEntityDescriptorAlias,
-                        new DefaultSimpleTableExpression(getEntityDescriptor().getTableName())));
+                        new DefaultSimpleTableExpression(getEntityDescriptor().getSchemaName(),
+                                getEntityDescriptor().getTableName())));
     }
 
     @Override
@@ -174,6 +175,7 @@ public class DefaultQueryProcessor<T>
                 new DefaultAliasTableColumnExpression(
                         columnDescriptor.getColumnType(),
                         new DefaultAliasTableExpression(
+                                entityDescriptor.getSchemaName(),
                                 entityDescriptor.getTableName(),
                                 aliasOptional.get()),
                         columnDescriptor.getColumnName()),
@@ -451,11 +453,13 @@ public class DefaultQueryProcessor<T>
                                     getExpression().getMainTargetExpression() :
                                     new DefaultQueryTargetExpressionWrapper(
                                             originAlias,
-                                            new DefaultSimpleTableExpression(originEntityDescriptor.getTableName())),
+                                            new DefaultSimpleTableExpression(originEntityDescriptor.getSchemaName(),
+                                                    originEntityDescriptor.getTableName())),
                             joinOperator,
                             new DefaultQueryTargetExpressionWrapper(
                                     tableAlias,
-                                    new DefaultSimpleTableExpression(entityDescriptor.getTableName()))));
+                                    new DefaultSimpleTableExpression(entityDescriptor.getSchemaName(),
+                                            entityDescriptor.getTableName()))));
         }
     }
 
@@ -473,7 +477,8 @@ public class DefaultQueryProcessor<T>
                             columnAlias,
                             new DefaultAliasTableColumnExpression(
                                     columnDescriptor.getColumnType(),
-                                    new DefaultAliasTableExpression(entityDescriptor.getTableName(), tableAlias),
+                                    new DefaultAliasTableExpression(entityDescriptor.getSchemaName(),
+                                            entityDescriptor.getTableName(), tableAlias),
                                     columnDescriptor.getColumnName())));
         }
     }
@@ -557,12 +562,14 @@ public class DefaultQueryProcessor<T>
             condition = new DefaultQueryConditionWrapper(
                     new DefaultAliasTableColumnExpression(
                             associatedColumnDescriptor.getColumnType(),
-                            new DefaultAliasTableExpression(entityDescriptorOrigin.getTableName(), originAlias),
+                            new DefaultAliasTableExpression(entityDescriptorOrigin.getSchemaName(),
+                                    entityDescriptorOrigin.getTableName(), originAlias),
                             associatedColumnDescriptor.getColumnName()),
                     ConditionOperator.EQUALS,
                     new DefaultAliasTableColumnExpression(
                             relatedIdColumn.getColumnType(),
-                            new DefaultAliasTableExpression(relatedDescriptor.getTableName(), tableAlias),
+                            new DefaultAliasTableExpression(relatedDescriptor.getSchemaName(),
+                                    relatedDescriptor.getTableName(), tableAlias),
                             relatedIdColumn.getColumnName()));
             ConditionsHelper.addCondition(conditionChain, ConditionChainOperator.AND, condition);
         }
@@ -584,6 +591,7 @@ public class DefaultQueryProcessor<T>
                 new DefaultAliasTableColumnExpression(
                         columnDescriptor.getColumnType(),
                         new DefaultAliasTableExpression(
+                                entityDescriptor.getSchemaName(),
                                 entityDescriptor.getTableName(),
                                 alias.get()),
                         columnDescriptor.getColumnName()));
@@ -608,6 +616,7 @@ public class DefaultQueryProcessor<T>
                                 new DefaultAliasTableColumnExpression(
                                         columnDescriptor.getColumnType(),
                                         new DefaultAliasTableExpression(
+                                                getEntityDescriptor().getSchemaName(),
                                                 getEntityDescriptor().getTableName(),
                                                 getFirstEntityDescriptorAlias()),
                                         columnDescriptor.getColumnName()))));

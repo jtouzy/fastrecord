@@ -6,7 +6,11 @@ public class DefaultAliasTableExpression extends AbstractTableExpression impleme
     private final String tableAlias;
 
     public DefaultAliasTableExpression(String table, String tableAlias) {
-        super(table);
+        this("", table, tableAlias);
+    }
+
+    public DefaultAliasTableExpression(String schema, String table, String tableAlias) {
+        super(schema, table);
         this.tableAlias = tableAlias;
     }
 

@@ -64,19 +64,15 @@ public class EntityLoader extends ConfigurationBased {
     }
 
     private void readEntityClass(Class<?> entityClass) {
-        String tableName = analyzeTableName(entityClass);
-        EntityDescriptor descriptor = new EntityDescriptor(entityClass, tableName);
-        entityDescriptorsByClass.put(entityClass, descriptor);
-        readEntityFields(descriptor);
-    }
-
-    private String analyzeTableName(Class<?> entityClass) {
         Entity annotation = entityClass.getAnnotation(Entity.class);
         String tableName = annotation.name();
         if (tableName.isEmpty()) {
             tableName = getConfiguration().getTableNamingStrategy().toDatabaseFormat(entityClass.getSimpleName());
         }
-        return tableName;
+        String schemaName = annotation.schema();
+        EntityDescriptor descriptor = new EntityDescriptor(entityClass, schemaName, tableName);
+        entityDescriptorsByClass.put(entityClass, descriptor);
+        readEntityFields(descriptor);
     }
 
     private void readEntityFields(EntityDescriptor descriptor) {

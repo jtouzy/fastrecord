@@ -6,4 +6,8 @@ public class DefaultSimpleTableExpression extends AbstractTableExpression implem
     public DefaultSimpleTableExpression(String table) {
         super(table);
     }
+
+    public DefaultSimpleTableExpression(String schema, String table) {
+        super(schema, table);
+    }
 }

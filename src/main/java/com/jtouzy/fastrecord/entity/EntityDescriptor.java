@@ -10,17 +10,23 @@ import java.util.stream.Collectors;
 
 public class EntityDescriptor {
     private final Class clazz;
+    private final String schemaName;
     private final String tableName;
     private final Map<String,ColumnDescriptor> columnDescriptorsByColumn;
 
-    public EntityDescriptor(Class clazz, String tableName) {
+    public EntityDescriptor(Class clazz, String schemaName, String tableName) {
         this.clazz = clazz;
+        this.schemaName = schemaName;
         this.tableName = tableName;
         this.columnDescriptorsByColumn = new HashMap<>();
     }
 
     public Class getClazz() {
         return clazz;
+    }
+
+    public String getSchemaName() {
+        return schemaName;
     }
 
     public String getTableName() {

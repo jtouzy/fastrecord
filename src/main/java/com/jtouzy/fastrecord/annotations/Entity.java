@@ -10,5 +10,6 @@ import java.lang.annotation.RetentionPolicy;
 @Scope("prototype")
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Entity {
+    String schema() default "";
     String name() default "";
 }
