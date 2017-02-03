@@ -27,6 +27,7 @@ import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionWrappe
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryTargetExpressionJoin;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryTargetExpressionWrapper;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryWrapper;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultSimpleTableExpression;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementParameter;
@@ -183,6 +184,18 @@ public class DefaultQueryProcessor<T>
                 new DefaultConstantExpression(
                         columnDescriptor.getColumnType(),
                         columnDescriptor.getTypeManager().convertToDatabase(value)));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected <C extends ConditionChain & ConditionWrapper> C createConditionWrapper(
+            EntityDescriptor entityDescriptor, ConditionOperator operator, ConditionsProcessor value) {
+        if (!(value instanceof QueryProcessor)) {
+            throw new IllegalArgumentException("Condition value must be a QueryProcessor");
+        }
+        QueryProcessor queryProcessor = (QueryProcessor)value;
+        return (C)new DefaultQueryConditionWrapper(operator,
+                new DefaultQueryWrapper((QueryExpression)queryProcessor.getExpression()));
     }
 
     // =============================================================================
@@ -435,6 +448,42 @@ public class DefaultQueryProcessor<T>
     @Override
     public  QueryProcessor<T> orNotIn(String columnName, List<?> values) {
         super.orNotIn(columnName, values);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> exists(ConditionsProcessor conditionsProcessor) {
+        super.exists(conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andExists(ConditionsProcessor conditionsProcessor) {
+        super.andExists(conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orExists(ConditionsProcessor conditionsProcessor) {
+        super.orExists(conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> notExists(ConditionsProcessor conditionsProcessor) {
+        super.notExists(conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> andNotExists(ConditionsProcessor conditionsProcessor) {
+        super.andNotExists(conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orNotExists(ConditionsProcessor conditionsProcessor) {
+        super.orNotExists(conditionsProcessor);
         return this;
     }
 

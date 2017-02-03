@@ -40,6 +40,19 @@ public class QueryBuilderTest extends AbstractBuilderTest {
     }
 
     @Test
+    public void singleExistsConditionQueryBuilderTest() throws Exception {
+        DbReadyStatementMetadata metadata = statementProcessor.queryFrom(Event.class).fill(Category.class)
+                .exists(statementProcessor.queryFrom(Event.class)).writeMetadata();
+        Assert.assertEquals("SELECT event0.id as event0$$id, event0.category as event0$$category, " +
+                        "event0.title as event0$$title, category0.title as category0$$title " +
+                        "FROM event event0, category category0 " +
+                        "WHERE ((event0.category = category0.id) AND (EXISTS (SELECT event0.id as event0$$id, " +
+                        "event0.category as event0$$category, event0.title as event0$$title FROM event event0)))",
+                metadata.getSqlString().toString());
+        Assert.assertEquals(0, metadata.getParameters().size());
+    }
+
+    @Test
     public void twoConditionsQueryBuilderTest() throws Exception {
         DbReadyStatementMetadata metadata = statementProcessor.queryFrom(SimpleEvent.class)
                 .eq("title", "Test2").andEq("id", 1).writeMetadata();

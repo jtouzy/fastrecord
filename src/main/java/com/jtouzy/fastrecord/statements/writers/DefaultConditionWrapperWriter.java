@@ -2,6 +2,7 @@ package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.annotations.support.Writes;
 import com.jtouzy.fastrecord.statements.context.BasicConditionExpression;
+import com.jtouzy.fastrecord.statements.context.ConditionOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionWrapper;
 import com.jtouzy.fastrecord.statements.processing.DbReadyStatementMetadata;
 import com.jtouzy.fastrecord.utils.Priority;
@@ -14,7 +15,9 @@ public class DefaultConditionWrapperWriter extends AbstractWriter<ConditionWrapp
     @Override
     @SuppressWarnings("unchecked")
     public void write() {
-        appendExpressionList(getContext().getFirstConditionExpressions());
+        if (getContext().getConditionOperator().hasFirstExpression()) {
+            appendExpressionList(getContext().getFirstConditionExpressions());
+        }
         appendOperator();
         appendExpressionList(getContext().getCompareConditionExpressions());
     }
@@ -39,24 +42,34 @@ public class DefaultConditionWrapperWriter extends AbstractWriter<ConditionWrapp
 
     private void appendOperator() {
         DbReadyStatementMetadata metadata = getResult();
-        switch (getContext().getConditionOperator()) {
+        ConditionOperator conditionOperator = getContext().getConditionOperator();
+        if (conditionOperator.hasFirstExpression()) {
+            metadata.getSqlString().append(" ");
+        }
+        switch (conditionOperator) {
             case EQUALS:
-                metadata.getSqlString().append(" = ");
+                metadata.getSqlString().append("= ");
                 break;
             case NOT_EQUALS:
-                metadata.getSqlString().append(" != ");
+                metadata.getSqlString().append("!= ");
                 break;
             case IN:
-                metadata.getSqlString().append(" IN ");
+                metadata.getSqlString().append("IN ");
                 break;
             case NOT_IN:
-                metadata.getSqlString().append(" NOT IN ");
+                metadata.getSqlString().append("NOT IN ");
                 break;
             case LIKE:
-                metadata.getSqlString().append(" LIKE ");
+                metadata.getSqlString().append("LIKE ");
                 break;
             case NOT_LIKE:
-                metadata.getSqlString().append(" NOT LIKE ");
+                metadata.getSqlString().append("NOT LIKE ");
+                break;
+            case EXISTS:
+                metadata.getSqlString().append("EXISTS ");
+                break;
+            case NOT_EXISTS:
+                metadata.getSqlString().append("NOT EXISTS ");
                 break;
         }
     }

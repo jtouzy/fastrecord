@@ -6,5 +6,11 @@ public enum ConditionOperator {
     IN,
     NOT_IN,
     LIKE,
-    NOT_LIKE
+    NOT_LIKE,
+    EXISTS,
+    NOT_EXISTS;
+
+    public boolean hasFirstExpression() {
+        return !this.equals(EXISTS) && !this.equals(NOT_EXISTS);
+    }
 }

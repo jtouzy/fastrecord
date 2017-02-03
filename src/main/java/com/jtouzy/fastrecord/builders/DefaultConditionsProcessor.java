@@ -47,6 +47,8 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     protected abstract <C extends ConditionChain & ConditionWrapper> C createConditionWrapper(
             EntityDescriptor entityDescriptor, ColumnDescriptor columnDescriptor,
             ConditionOperator operator, Object value);
+    protected abstract <C extends ConditionChain & ConditionWrapper> C createConditionWrapper(
+            EntityDescriptor entityDescriptor, ConditionOperator operator, ConditionsProcessor value);
 
     // =============================================================================
     // Interface overrides
@@ -184,6 +186,42 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
         return this;
     }
 
+    @Override
+    public ConditionsProcessor exists(ConditionsProcessor conditionsProcessor) {
+        createSimpleCondition(ConditionChainOperator.AND, ConditionOperator.EXISTS, conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public ConditionsProcessor andExists(ConditionsProcessor conditionsProcessor) {
+        createSimpleCondition(ConditionChainOperator.AND, ConditionOperator.EXISTS, conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public ConditionsProcessor orExists(ConditionsProcessor conditionsProcessor) {
+        createSimpleCondition(ConditionChainOperator.OR, ConditionOperator.EXISTS, conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public ConditionsProcessor notExists(ConditionsProcessor conditionsProcessor) {
+        createSimpleCondition(ConditionChainOperator.AND, ConditionOperator.NOT_EXISTS, conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public ConditionsProcessor andNotExists(ConditionsProcessor conditionsProcessor) {
+        createSimpleCondition(ConditionChainOperator.AND, ConditionOperator.NOT_EXISTS, conditionsProcessor);
+        return this;
+    }
+
+    @Override
+    public ConditionsProcessor orNotExists(ConditionsProcessor conditionsProcessor) {
+        createSimpleCondition(ConditionChainOperator.OR, ConditionOperator.NOT_EXISTS, conditionsProcessor);
+        return this;
+    }
+
     // =============================================================================
     // Protected methods
     // =============================================================================
@@ -203,6 +241,14 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
             throw new ColumnNotFoundException(columnName, entityDescriptor.getClazz());
         }
         return columnDescriptorOptional.get();
+    }
+
+    protected void createSimpleCondition(EntityDescriptor entityDescriptor,
+                                         ConditionChainOperator chainOperator,
+                                         ConditionOperator operator, ConditionsProcessor value) {
+        initializeIfNeeded();
+        ConditionChain wrapper = createConditionWrapper(entityDescriptor, operator, value);
+        ConditionsHelper.addCondition(currentConditionChain, chainOperator, wrapper);
     }
 
     protected void createSimpleCondition(EntityDescriptor entityDescriptor,
@@ -269,6 +315,11 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     private void createSimpleCondition(ConditionChainOperator chainOperator, String columnName,
                                        ConditionOperator operator, Object value) {
         createSimpleCondition(getEntityDescriptor(), chainOperator, columnName, operator, value);
+    }
+
+    private void createSimpleCondition(ConditionChainOperator chainOperator, ConditionOperator operator,
+                                       ConditionsProcessor value) {
+        createSimpleCondition(getEntityDescriptor(), chainOperator, operator, value);
     }
 
     @SuppressWarnings("unchecked")

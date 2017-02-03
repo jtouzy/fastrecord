@@ -62,4 +62,11 @@ public interface QueryProcessor<T> extends ConditionsProcessor<T,QueryExpression
     @Override QueryProcessor<T> orNotLike(String columnName, Object value);
     @Override QueryProcessor<T> orIn(String columnName, List<?> value);
     @Override QueryProcessor<T> orNotIn(String columnName, List<?> value);
+
+    @Override QueryProcessor<T> exists(ConditionsProcessor conditionsProcessor);
+    @Override QueryProcessor<T> andExists(ConditionsProcessor conditionsProcessor);
+    @Override QueryProcessor<T> orExists(ConditionsProcessor conditionsProcessor);
+    @Override QueryProcessor<T> notExists(ConditionsProcessor conditionsProcessor);
+    @Override QueryProcessor<T> andNotExists(ConditionsProcessor conditionsProcessor);
+    @Override QueryProcessor<T> orNotExists(ConditionsProcessor conditionsProcessor);
 }

@@ -28,4 +28,11 @@ public interface ConditionsProcessor<T,E extends WritableContext> extends Proces
     ConditionsProcessor orNotLike(String columnName, Object value);
     ConditionsProcessor orIn(String columnName, List<?> values);
     ConditionsProcessor orNotIn(String columnName, List<?> values);
+
+    ConditionsProcessor exists(ConditionsProcessor conditionsProcessor);
+    ConditionsProcessor andExists(ConditionsProcessor conditionsProcessor);
+    ConditionsProcessor orExists(ConditionsProcessor conditionsProcessor);
+    ConditionsProcessor notExists(ConditionsProcessor conditionsProcessor);
+    ConditionsProcessor andNotExists(ConditionsProcessor conditionsProcessor);
+    ConditionsProcessor orNotExists(ConditionsProcessor conditionsProcessor);
 }
