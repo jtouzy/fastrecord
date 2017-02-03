@@ -226,6 +226,11 @@ public abstract class DefaultConditionsProcessor<T,E extends WritableContext>
     // Protected methods
     // =============================================================================
 
+    public ConditionChain getCurrentConditionChain() {
+        initializeIfNeeded();
+        return currentConditionChain;
+    }
+
     protected void initConditionsProcessor(ConditionChain mainConditionChain) {
         this.mainConditionChain = mainConditionChain;
     }

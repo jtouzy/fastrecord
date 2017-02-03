@@ -216,6 +216,28 @@ public class DefaultQueryProcessor<T>
     // Interface conditions overrides
     // =============================================================================
 
+    @Override
+    public QueryProcessor<T> join(String alias, String columnName, String joinAlias, String joinColumnName) {
+        // TODO safe join (warning for Exists clause with inexisting tables)
+        // TODO get main context of parent query (this method is temporary)
+        EntityDescriptor firstEntityDescriptor = getEntityDescriptorsByAlias().get(alias);
+        if (firstEntityDescriptor == null) {
+            throw new IllegalArgumentException("Alias " + alias + " is not registered to an entity");
+        }
+        ColumnDescriptor columnDescriptor = safeGetColumnDescriptor(firstEntityDescriptor, columnName);
+        ConditionChain wrapper = new DefaultQueryConditionWrapper(
+                new DefaultAliasTableColumnExpression(
+                        columnDescriptor.getColumnType(),
+                        new DefaultAliasTableExpression(firstEntityDescriptor.getTableName(), alias),
+                        columnName),
+                ConditionOperator.EQUALS,
+                new DefaultAliasTableColumnExpression(
+                        columnDescriptor.getColumnType(),
+                        new DefaultAliasTableExpression("", joinAlias),
+                        joinColumnName));
+        ConditionsHelper.addCondition(getCurrentConditionChain(), ConditionChainOperator.AND, wrapper);
+        return this;
+    }
 
     @Override
     public QueryProcessor<T> chain() {

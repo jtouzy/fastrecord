@@ -18,6 +18,10 @@ public interface QueryProcessor<T> extends ConditionsProcessor<T,QueryExpression
     Optional<T> findFirst();
     List<T> findAll();
 
+    // Special joins
+
+    QueryProcessor<T> join(String alias, String columnName, String joinAlias, String joinColumName);
+
     // Overrides needed to return the good object type
 
     @Override QueryProcessor<T> chain();
