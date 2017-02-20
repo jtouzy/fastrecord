@@ -33,5 +33,5 @@ public interface QueryExpression
      *
      * @return SQL query order by columns
      */
-    List<AliasTableColumnExpression> getOrderByColumns();
+    List<OrderByColumnWrapper> getOrderByColumns();
 }

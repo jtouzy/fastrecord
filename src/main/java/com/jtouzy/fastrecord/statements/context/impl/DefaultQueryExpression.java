@@ -10,7 +10,7 @@ public class DefaultQueryExpression implements QueryExpression {
     private final QueryTargetExpressionWrapper mainTarget;
     private final List<QueryTargetExpressionJoin> joinList;
     private final QueryConditionChain conditionChain;
-    private final List<AliasTableColumnExpression> orderByList;
+    private final List<OrderByColumnWrapper> orderByList;
 
     public DefaultQueryExpression(QueryTargetExpressionWrapper mainTarget) {
         this.mainTarget = mainTarget;
@@ -45,7 +45,7 @@ public class DefaultQueryExpression implements QueryExpression {
     }
 
     @Override
-    public List<AliasTableColumnExpression> getOrderByColumns() {
+    public List<OrderByColumnWrapper> getOrderByColumns() {
         return orderByList;
     }
 }

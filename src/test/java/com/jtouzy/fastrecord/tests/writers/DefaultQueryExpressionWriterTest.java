@@ -9,6 +9,7 @@ import com.jtouzy.fastrecord.statements.context.QueryWrapper;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAggregateFunctionExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultOrderByColumnWrapper;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryColumnExpressionWrapper;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryTargetExpressionJoin;
@@ -84,11 +85,11 @@ public class DefaultQueryExpressionWriterTest extends AbstractWriterTest<QueryEx
                         new DefaultSimpleTableExpression("table_name")));
         queryExpression.getColumns().add(
                 new DefaultQueryColumnExpressionWrapper("column_alias", tableColumnExpression));
-        queryExpression.getOrderByColumns().add(tableColumnExpression);
+        queryExpression.getOrderByColumns().add(new DefaultOrderByColumnWrapper(tableColumnExpression));
         DbReadyStatementMetadata metadata = getWriterResult(queryExpression);
 
         Assert.assertEquals("SELECT table_alias.column_name as column_alias FROM table_name table_alias " +
-                        "ORDER BY table_alias.column_name",
+                        "ORDER BY table_alias.column_name DESC",
                 metadata.getSqlString().toString());
         Assert.assertEquals(0, metadata.getParameters().size());
     }

@@ -1,8 +1,8 @@
 package com.jtouzy.fastrecord.statements.writers;
 
 import com.jtouzy.fastrecord.annotations.support.Writes;
-import com.jtouzy.fastrecord.statements.context.AliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
+import com.jtouzy.fastrecord.statements.context.OrderByColumnWrapper;
 import com.jtouzy.fastrecord.statements.context.QueryColumnExpressionWrapper;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import com.jtouzy.fastrecord.statements.context.QueryTargetExpressionJoin;
@@ -54,7 +54,7 @@ public class DefaultQueryExpressionWriter extends AbstractConditionChainHolderWr
     private void appendQueryOrder() {
         if (!getContext().getOrderByColumns().isEmpty()) {
             getResult().getSqlString().append(" ORDER BY ");
-            Iterator<AliasTableColumnExpression> it = getContext().getOrderByColumns().iterator();
+            Iterator<OrderByColumnWrapper> it = getContext().getOrderByColumns().iterator();
             while (it.hasNext()) {
                 mergeWriter(it.next());
                 if (it.hasNext()) {

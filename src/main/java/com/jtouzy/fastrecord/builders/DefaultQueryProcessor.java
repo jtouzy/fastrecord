@@ -15,12 +15,14 @@ import com.jtouzy.fastrecord.statements.context.ConditionChainOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionOperator;
 import com.jtouzy.fastrecord.statements.context.ConditionWrapper;
 import com.jtouzy.fastrecord.statements.context.JoinOperator;
+import com.jtouzy.fastrecord.statements.context.OrderByType;
 import com.jtouzy.fastrecord.statements.context.QueryConditionChain;
 import com.jtouzy.fastrecord.statements.context.QueryExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAggregateFunctionExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableColumnExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultAliasTableExpression;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultConstantExpression;
+import com.jtouzy.fastrecord.statements.context.impl.DefaultOrderByColumnWrapper;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryColumnExpressionWrapper;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionChain;
 import com.jtouzy.fastrecord.statements.context.impl.DefaultQueryConditionWrapper;
@@ -97,13 +99,25 @@ public class DefaultQueryProcessor<T>
 
     @Override
     public QueryProcessor<T> orderBy(String columnName) {
-        orderBy(getEntityDescriptor(), columnName);
+        orderBy(getEntityDescriptor(), columnName, OrderByType.DESC);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orderByAsc(String columnName) {
+        orderBy(getEntityDescriptor(), columnName, OrderByType.ASC);
         return this;
     }
 
     @Override
     public QueryProcessor<T> orderBy(Class entityClass, String columnName) {
-        orderBy(findEntityDescriptorWithClass(entityClass), columnName);
+        orderBy(findEntityDescriptorWithClass(entityClass), columnName, OrderByType.DESC);
+        return this;
+    }
+
+    @Override
+    public QueryProcessor<T> orderByAsc(Class entityClass, String columnName) {
+        orderBy(findEntityDescriptorWithClass(entityClass), columnName, OrderByType.ASC);
         return this;
     }
 
@@ -646,7 +660,7 @@ public class DefaultQueryProcessor<T>
         }
     }
 
-    private void orderBy(EntityDescriptor entityDescriptor, String columnName) {
+    private void orderBy(EntityDescriptor entityDescriptor, String columnName, OrderByType type) {
         Optional<ColumnDescriptor> columnDescriptorOptional = entityDescriptor.getColumnDescriptorByColumn(columnName);
         if (!columnDescriptorOptional.isPresent()) {
             throw new ColumnNotFoundException(columnName, entityDescriptor.getClazz());
@@ -659,13 +673,14 @@ public class DefaultQueryProcessor<T>
             throw new IllegalStateException("An alias must be present to identify the EntityDescriptor");
         }
         getExpression().getOrderByColumns().add(
-                new DefaultAliasTableColumnExpression(
-                        columnDescriptor.getColumnType(),
-                        new DefaultAliasTableExpression(
-                                entityDescriptor.getSchemaName(),
-                                entityDescriptor.getTableName(),
-                                alias.get()),
-                        columnDescriptor.getColumnName()));
+                new DefaultOrderByColumnWrapper(
+                    new DefaultAliasTableColumnExpression(
+                            columnDescriptor.getColumnType(),
+                            new DefaultAliasTableExpression(
+                                    entityDescriptor.getSchemaName(),
+                                    entityDescriptor.getTableName(),
+                                    alias.get()),
+                            columnDescriptor.getColumnName()), type));
     }
 
     private void appendParameters(DbReadyStatementMetadata metadata, PreparedStatement preparedStatement)

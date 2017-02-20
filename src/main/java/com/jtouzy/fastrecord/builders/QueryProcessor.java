@@ -11,7 +11,9 @@ public interface QueryProcessor<T> extends ConditionsProcessor<T,QueryExpression
     QueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass);
     QueryProcessor<T> fillFrom(Class originEntityClass, Class filledEntityClass, String propertyName);
     QueryProcessor<T> orderBy(String columnName);
+    QueryProcessor<T> orderByAsc(String columnName);
     QueryProcessor<T> orderBy(Class entityClass, String columnName);
+    QueryProcessor<T> orderByAsc(Class entityClass, String columnName);
 
     Integer count();
     Integer count(String columnName);

@@ -135,7 +135,7 @@ public class QueryBuilderTest extends AbstractBuilderTest {
     public void simpleOrderedQueryBuilderTest() throws Exception {
         DbReadyStatementMetadata metadata = statementProcessor.queryFrom(Event.class).orderBy("title").writeMetadata();
         Assert.assertEquals("SELECT event0.id as event0$$id, event0.category as event0$$category, " +
-                        "event0.title as event0$$title FROM event event0 ORDER BY event0.title",
+                        "event0.title as event0$$title FROM event event0 ORDER BY event0.title DESC",
                 metadata.getSqlString().toString());
         Assert.assertEquals(0, metadata.getParameters().size());
     }
@@ -147,7 +147,7 @@ public class QueryBuilderTest extends AbstractBuilderTest {
         Assert.assertEquals("SELECT event0.id as event0$$id, event0.category as event0$$category, " +
                         "event0.title as event0$$title, category0.title as category0$$title " +
                         "FROM event event0, category category0 " +
-                        "WHERE ((event0.category = category0.id)) ORDER BY category0.title",
+                        "WHERE ((event0.category = category0.id)) ORDER BY category0.title DESC",
                 metadata.getSqlString().toString());
         Assert.assertEquals(0, metadata.getParameters().size());
     }
