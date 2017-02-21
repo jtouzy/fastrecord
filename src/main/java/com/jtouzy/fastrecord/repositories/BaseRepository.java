@@ -47,6 +47,12 @@ public abstract class BaseRepository<T> implements Repository<T> {
     }
 
     @Override
+    public List<T> create(List<T> objects) throws StatementException {
+        statementProcessor.insert(entityClass, objects);
+        return objects;
+    }
+
+    @Override
     public T update(T object) throws StatementException {
         statementProcessor.update(object).execute();
         return object;

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -73,6 +74,15 @@ public class Statement {
                 (Class<? extends InsertProcessor<T>>)processorsByClass.get(InsertExpression.class);
         InsertProcessor<T> processor = applicationContext.getBean(processorClass);
         processor.initWriteProcessor(entityClass, target);
+        return processor;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> InsertProcessor<T> insert(Class<T> entityClass, List<T> targetList) {
+        Class<? extends InsertProcessor<T>> processorClass =
+                (Class<? extends InsertProcessor<T>>)processorsByClass.get(InsertExpression.class);
+        InsertProcessor<T> processor = applicationContext.getBean(processorClass);
+        processor.initProcessor(entityClass, targetList);
         return processor;
     }
 

@@ -74,10 +74,7 @@ public abstract class DefaultWriteProcessor<T,E extends WritableContext & WriteE
     @Override
     public void initProcessor(Class<T> entityClass) {
         super.initProcessor(entityClass);
-        for (ColumnDescriptor columnDescriptor : getEntityDescriptor().getColumnDescriptors()) {
-            addValueWithColumn(getTarget(), columnDescriptor,
-                    columnDescriptor.getColumnName(), getExpression().getTarget());
-        }
+        initDefaultValues();
     }
 
     // =============================================================================
@@ -97,6 +94,16 @@ public abstract class DefaultWriteProcessor<T,E extends WritableContext & WriteE
             return columnDescriptor.getPropertyGetter().invoke(target);
         } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException ex) {
             throw new ObjectReadException("Error when read " + columnDescriptor.getPropertyName() + " on object " + target, ex);
+        }
+    }
+
+    protected void initDefaultValues() {
+        initTargetValues(getTarget());
+    }
+
+    protected void initTargetValues(T target) {
+        for (ColumnDescriptor columnDescriptor : getEntityDescriptor().getColumnDescriptors()) {
+            addValueWithColumn(target, columnDescriptor, columnDescriptor.getColumnName(), getExpression().getTarget());
         }
     }
 
